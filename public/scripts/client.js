@@ -129,7 +129,7 @@ socket.on("established_private_room", (data, callback) => {
 });
 
 socket.on("update_chattabs", (data) => {
-    console.log("Update chattabs bei client erhalten");
+    console.log("Update chattabs bei client erhalten yeah");
     document.getElementById("roomsTabsWindow").innerHTML = data.chattabs;
 });
 
