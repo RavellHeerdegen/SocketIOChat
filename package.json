@@ -1,0 +1,14 @@
+{
+  "name": "socketiochat",
+  "version": "1.0.0",
+  "description": "exerciseone",
+  "main": "server.js",
+  "scripts": {
+  },
+  "author": "Ravell",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.3",
+    "socket.io": "^2.1.1"
+  }
+}

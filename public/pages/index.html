@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Super Chat Bros.</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <div class="container" id="loginDiv">
+        <h1>Please login with a username</h1>
+        <div class="form" action="">
+            <div class="form-group" id="loginFormGroup">
+                <label>Username:</label>
+                <input type="text" class="form-control" id="usernameInput">
+                <label class="text-danger" id="loginFailedLabel"></label>
+            </div>
+            <button class="btn btn-primary" type="button" id="loginButton">Login</button>
+        </div>
+    </div>
+
+    <div class="container" id="chatDiv">
+        <div class="row" id="chatRow">
+            <div class="col-sm-10" id="chatColumn">
+                <div class="row" id="headerInfo">
+                    <div class="col-sm-4">
+                        <h3 id="loggedInUserName"></h3>
+                    </div>
+                    <div class="col-sm-6">
+                        <h3 id="loggedInUsersCount"></h3>
+                    </div>
+                    <div class="col-sm-2">
+                        <button class="btn btn-warning" type="button" id="logoutButton">Logout</button>
+                    </div>
+                </div>
+                <div class="row" id="roomsContent">
+                    <div class="col-sm-12" id="roomsTabsWindow">
+
+                    </div>
+                </div>
+                <div class="row" id="chatContent">
+                    <div class="col-sm-12" id="chatMessagesWindow">
+
+                    </div>
+                </div>
+                <div class="row" id="sendArea">
+                    <div class="col-sm-10">
+                        <div class="form" action="">
+                            <div class="form-group" id="sendFormGroup">
+                                <input class="form-control" type="text" placeholder="Write something..." id="message">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <button class="btn btn-primary" type="button" id="messageSendButton">Send</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2" id="usersColumn">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <label>Users online</label>
+                        <ul class="list-group" id="usersonlinelist">
+                            
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>  
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script>
+        var socket = io.connect("http://localhost:3000");
+
+        function createPrivateRoom(otheruser) {
+            socket.emit("create_private_room", {othername: otheruser.id});
+        }
+
+    </script>
+    <script src="../scripts/client.js"></script>
+    <link rel="stylesheet" type="text/css" href="../styles/chat.css">
+</body>
+</html>
