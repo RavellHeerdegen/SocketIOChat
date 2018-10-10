@@ -54,6 +54,7 @@
                     </div>
                     <div class="col-sm-2">
                         <button class="btn btn-primary" type="button" id="messageSendButton">Send</button>
+                        <input type="file" id="siofu_input">
                     </div>
                 </div>
             </div>
@@ -68,19 +69,10 @@
                 </div>
             </div>
         </div>
-    </div>  
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
-    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
-    <script>
-        var socket = io.connect("http://localhost:3000");
-
-        function createPrivateRoom(otheruser) {
-            socket.emit("create_private_room", {othername: otheruser.id});
-        }
-
-    </script>
-    <script src="../scripts/client.js"></script>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/siofu/client.js"></script>
     <link rel="stylesheet" type="text/css" href="../styles/chat.css">
+    <script src="../scripts/client.js"></script>
 </body>
 </html>

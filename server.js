@@ -1,8 +1,10 @@
 /* Initialisation of all modules and prototypes START */
 const express = require("express"); //Get module express
 const app = express(); //Instantiate a prototype of express
+var siofu = require("socketio-file-upload");
 
 app.use(express.static(__dirname + "/public")); //Default path for route-tracing is public/...
+app.use(siofu.router);
 
 // Server variables START
 var users = [];
@@ -34,7 +36,26 @@ app.get("/", (req, res) => {
  * Called when a new socket connects to the server
  */
 io.on("connection", (socket) => {
-    //Socket is the connection to the user
+    var uploader = new siofu();
+    uploader.dir = "./public/uploads";
+    uploader.listen(socket);
+
+    uploader.on("saved", (data) => {
+        console.log(data.file.name);
+        console.log(data.file.mtime);
+        console.log(data.file.encoding);
+        console.log(data.file.meta);
+        console.log(data.file.success);
+        console.log(data.file.bytesLoaded);
+        console.log("SAVED");
+    });
+
+    uploader.on("error", (data) => {
+
+        console.log(data);
+        console.log("FAIL");
+    });
+    //Socket is the connection of the user
     socket.username = "Anonymous";
     
     /**

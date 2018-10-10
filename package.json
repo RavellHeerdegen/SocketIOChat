@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "description": "exerciseone",
   "main": "server.js",
-  "scripts": {
-  },
+  "scripts": {},
   "author": "Ravell",
   "license": "ISC",
   "dependencies": {
+    "bootstrap": "^4.1.3",
     "express": "^4.16.3",
-    "socket.io": "^2.1.1"
+    "jquery": "^3.3.1",
+    "socket.io": "^2.1.1",
+    "socketio-file-upload": "^0.6.3"
   }
 }
