@@ -9,6 +9,8 @@ uploader.addEventListener("error", (event) => {
 
 uploader.addEventListener("start", (event) => {
     console.log(event.file);
+    event.file.meta.room = activeroom;
+    event.file.meta.sender = username;
 });
 
 uploader.addEventListener("complete", (event) => {
@@ -123,7 +125,6 @@ socket.on("login_failed", (data) => {
  * Handles the creation event for a new private room, creates a new room and corresponding window
  */
 socket.on("established_private_room", (data, callback) => {
-    console.log("Establish event erhalten CLient");
     rooms.push(data.room);
     if (data.requestorsocketname === username) {
         activeroom = data.room;
@@ -145,9 +146,20 @@ socket.on("established_private_room", (data, callback) => {
     callback();
 });
 
+/**
+ * Updates the Chat tabs Window with the incoming chattabs elements
+ */
 socket.on("update_chattabs", (data) => {
-    console.log("Update chattabs bei client erhalten yeah");
     $("#roomsTabsWindow").html(data.chattabs);
+});
+
+/**
+ * Adds a download item to the chatcontext and serves the path to the file received
+ */
+socket.on("file", (data) => {
+    $("#" + data.room + "window").html($("#" + data.room + "window").html() + 
+    "<a href='" + data.url + "' download='" + data.filename + "'>DOWNLOAD</a>");
+
 });
 
 /* Socket.on Events END */
@@ -185,7 +197,6 @@ function loadLogoutConfiguration() {
  * @param {string} newactivechatname the name of the new active room
  */
 function switchChatTabs(newactivechatname) {
-    console.log("Switching tabs");
     rooms.forEach(room => {
         $("#" + room + "window").css("display", "none");
     });

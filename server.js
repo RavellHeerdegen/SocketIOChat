@@ -4,6 +4,9 @@ const app = express(); //Instantiate a prototype of express
 var siofu = require("socketio-file-upload");
 
 app.use(express.static(__dirname + "/public")); //Default path for route-tracing is public/...
+app.use('/js', express.static(__dirname + '/node_modules/bootstrap/dist/js')); // redirect bootstrap JS
+app.use('/js', express.static(__dirname + '/node_modules/jquery/dist')); // redirect JS jQuery
+app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css')); // redirect CSS bootstrap
 app.use(siofu.router);
 
 // Server variables START
@@ -40,14 +43,28 @@ io.on("connection", (socket) => {
     uploader.dir = "./public/uploads";
     uploader.listen(socket);
 
+    uploader.on("start", (data) => {
+        data.file.mtime = new Date();
+    })
+
     uploader.on("saved", (data) => {
         console.log(data.file.name);
-        console.log(data.file.mtime);
         console.log(data.file.encoding);
         console.log(data.file.meta);
         console.log(data.file.success);
         console.log(data.file.bytesLoaded);
+        console.log(data.file.pathName);
         console.log("SAVED");
+        console.log(data.file.meta.room);
+        console.log(data.file.meta.sender);
+        data.file.pathName = data.file.pathName.replace("public", "");
+        
+        io.in(data.file.meta.room).emit("file", {
+            room: data.file.meta.room,
+            url: data.file.pathName,
+            sender: data.file.meta.sender,
+            filename: data.file.name
+        });
     });
 
     uploader.on("error", (data) => {
@@ -200,7 +217,6 @@ function buildOnlineUsersList() {
  */
 function buildChatTabs(username) {
     socket = users.find(f => f.username === username);
-    console.log("Found user with name:" + socket.username);
     chatTabsDOMElements = "";
     rooms = Object.keys(socket.rooms);
     rooms.forEach(room => {
@@ -210,7 +226,6 @@ function buildChatTabs(username) {
             chatTabsDOMElements += chatTabDOM;
         }
     });
-    console.log("Emitting to" + socket.id);
     socket.emit("update_chattabs", {
         chattabs: chatTabsDOMElements
     });
