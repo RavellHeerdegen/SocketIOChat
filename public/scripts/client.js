@@ -1,23 +1,6 @@
 var socket = io.connect("http://localhost:3000");
 var uploader = new SocketIOFileUpload(socket);
-uploader.listenOnInput(document.getElementById("siofu_input"));
-
-uploader.addEventListener("error", (event) => {
-    
-    console.log("FEHLER");
-});
-
-uploader.addEventListener("start", (event) => {
-    console.log(event.file);
-    event.file.meta.room = activeroom;
-    event.file.meta.sender = username;
-});
-
-uploader.addEventListener("complete", (event) => {
-    console.log(event.file);
-    console.log(event.success);
-    console.log(event.detail);
-});
+uploader.listenOnInput(document.getElementById("file_input"));
 
 // loginVariables START
 var loginButton = $("#loginButton");
@@ -35,13 +18,13 @@ var messageSendButton = $("#messageSendButton");
 
 // chatVariables START
 var activeroom;
-var activechatwindow;
+var loggedInUserName;
 // chatVariables END
 
 // DIVs START
 var loginDiv = $("#loginDiv");
 var chatDiv = $("#chatDiv").hide();
-var chatMessagesWindow = $("#chatMessagesWindow");
+var chatWindowDiv = $("#chatWindowDiv");
 // DIVs END
 
 // Personal data START
@@ -65,18 +48,22 @@ loginButton.click(() => {
  * Handles the logout of a user
  */
 logoutButton.click((callback) => {
-    socket.emit("disconnect");
+    socket.emit("disconnecting");
     callback = loadLogoutConfiguration;
     callback();
 });
 
 /**
- * Emits an allchat_message to the server
+ * Emits an chat_message to the server
  */
-messageSendButton.click((callback) => {
-    socket.emit("send", {message: message.val(), room: activeroom});
-    callback = () => {message.val("");}
-    callback();
+messageSendButton.click(() => {
+    // check length of message
+    if (message.val().trim().length > 120) {
+      alert("Message too long (180 characters limited)");  
+    } else {
+        socket.emit("send", {message: message.val(), room: activeroom.roomname});
+        message.val("");
+    }
 });
 
 /* CLick Events END */
@@ -87,30 +74,27 @@ messageSendButton.click((callback) => {
  * Handles the send_all socket-event of the server
  */
 socket.on("send", (data) => {
-    $("#" + data.room + "window").html( $("#" + data.room + "window").html() + data.message); 
+    buildChatItem(data.message);
 });
 
 /**
  * Handles the disconnect_all socket-event of the server
  */
-socket.on("disconnect", (data) => {
-    $("#usersonlinelist").html(data.usersonlinelist);
-    $("#loggedInUsersCount").html(data.loggedinusers);
-    $("#AllChatwindow").html($("#AllChatwindow").html() + data.userdisconnectedstring);
+socket.on("disconnecting", (data) => {
+    $("#usersonlinelist").html(data.message.usersOnlineListDOM);
+    buildChatItem(data.message);
 });
 
 /**
  * Handles the login_successful socket-event of the server
  */
 socket.on("login_successful", (data, callback) => {
-    if (data.username === username) {
-        $("#loggedInUserName").html(data.loggedinas);
+    $("#usersonlinelist").html(data.message.usersOnlineListDOM);
+    if (data.message.sendername === username) { // we are the logging in user
         callback = loadLoginConfiguration;
-        callback(data);
+        callback(data.message);
     } else {
-        $("#usersonlinelist").html(data.usersonlinelist);
-        $("#loggedInUsersCount").html(data.loggedinusers);
-        $("#AllChatwindow").html($("#AllChatwindow").html() + data.userconnectedstring);
+        callback = buildChatItem(data.message);
     }
 });
 
@@ -126,19 +110,9 @@ socket.on("login_failed", (data) => {
  */
 socket.on("established_private_room", (data, callback) => {
     rooms.push(data.room);
-    if (data.requestorsocketname === username) {
+    if (data.room.sendername === username) { // we are the caller
         activeroom = data.room;
-        activechatwindow = data.room + "window";
-        $("#chatMessagesWindow").html($("#chatMessagesWindow").html() + data.newchatwindow);
-        for (i = 0; i < rooms.length; i++) {
-            if (rooms[i] !== activeroom){
-                $("#" + rooms[i] + "window").css("display", "none");
-            }
-        }
-        $("#" + activechatwindow).css("display", "block");
-    } else {
-        $("#chatMessagesWindow").html($("#chatMessagesWindow").html() + data.newchatwindow);
-        $("#" + data.room + "window").css("display", "none");
+        $("#chatWindow").empty(); // empty the chat window
     }
     callback = () => { socket.emit("update_chattabs", {
         username: username
@@ -157,9 +131,7 @@ socket.on("update_chattabs", (data) => {
  * Adds a download item to the chatcontext and serves the path to the file received
  */
 socket.on("file", (data) => {
-    $("#" + data.room + "window").html($("#" + data.room + "window").html() + 
-    "<a href='" + data.url + "' download='" + data.filename + "'>DOWNLOAD</a>");
-
+    $("#" + data.room + "window").html($("#" + data.room + "window").html() + data.file);
 });
 
 /* Socket.on Events END */
@@ -168,20 +140,49 @@ socket.on("file", (data) => {
 
 /**
  * Loads up the login configuration of the DOM-Elements
+ * @param {LoginMessage} data the message sent if a new user connected
  */
 function loadLoginConfiguration(data, callback) {
-    activeroom = "AllChat";
-    activechatwindow = "AllChatwindow";
-    rooms.push("AllChat");
-    $("#chatMessagesWindow").html($("#chatMessagesWindow").html() + data.newchatwindow);
-    $("#usersonlinelist").html(data.usersonlinelist);
-    $("#loggedInUsersCount").html(data.loggedinusers);
-    $("#AllChatwindow").html($("#AllChatwindow").html() + data.userconnectedstring);
+    activeroom = data.room;
+    rooms.push(activeroom);
+    chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
+    $("#loggedInUserName").html(data.loggedInAsString);
+    buildChatItem(data);
     loginDiv.hide();
     chatDiv.show();
     socket.emit("update_chattabs", {
         username: username
     });
+}
+
+/**
+ * 
+ * @param {Message} data the message going to get built in the chat window 
+ */
+function buildChatItem(data) {
+    listItemDiv = "<div class='listItemDiv'>";
+    builtListItem = "";
+    if (data.sendername === username) {
+        listItem = "<li class='list-group-item ownListItem'>";
+        listItem = listItem + data.messageBody;
+        listItem = listItem + data.messageFooter;
+        listItem = listItem + "</li>";
+        builtListItem = listItem;
+    } else {
+        listItem = "<li class='list-group-item otherListItem'>";
+        listItem = listItem + data.messageHead;
+        listItem = listItem + data.messageBody;
+        listItem = listItem + data.messageFooter;
+        listItem = listItem + "</li>";
+        builtListItem = listItem;
+    }
+    listItemDiv = listItemDiv + builtListItem + "</div>";
+    
+    rooms.find(room => room.roomname === data.room.roomname).chatContent.push(listItemDiv);
+    $("#chatWindow").empty();
+    activeroom.chatContent.forEach(message => {
+        $("#chatWindow").html($("#chatWindow").html() + message);
+    })
 }
 
 /**
@@ -196,13 +197,15 @@ function loadLogoutConfiguration() {
  * Switches between the chat tabs and sets the new one active
  * @param {string} newactivechatname the name of the new active room
  */
-function switchChatTabs(newactivechatname) {
+function switchChatTabs(chattabbutton) {
     rooms.forEach(room => {
-        $("#" + room + "window").css("display", "none");
+        if (room.roomname === chattabbutton.id) {
+            $("#chatWindow").empty(); // empty the chat window
+            room.chatContent.forEach(message => {
+                $("#chatWindow").html($("#chatWindow").html() + message);
+            });
+        }
     });
-    activeroom = newactivechatname.id;
-    activechatwindow = newactivechatname.id + "window";
-    $("#" + newactivechatname.id + "window").css("display", "block");
 }
 
 /**
@@ -210,7 +213,69 @@ function switchChatTabs(newactivechatname) {
  * @param {string} otheruser the name of the user to chat with
  */
 function createPrivateRoom(otheruser) {
-    socket.emit("create_private_room", {othername: otheruser.id});
+    // check if room already exists of those two users
+    validCall = true;
+    rooms.forEach(room => {
+        if ((room.sendername === username && room.recipientname === otheruser.id) 
+            ||
+            (room.sendername === otheruser.id && room.recipientname === username)) {
+            validCall = false; // not permitted to create new room
+        }
+    });
+    if (otheruser.id === username) {
+        validCall = false; // not permitted to create new room
+    }
+    if (validCall) { 
+        socket.emit("create_private_room", {othername: otheruser.id}); 
+    }
 }
 
 /* Functions END */
+
+/* Event Listeners START */
+
+uploader.addEventListener("error", (event) => {
+    $("#chatWindow").html($("#chatWindow").html() + event.detail.errorDOMElement);
+});
+
+uploader.addEventListener("start", (event) => {
+    event.file.meta.room = activeroom.roomname;
+    event.file.meta.sender = username;
+});
+
+uploader.addEventListener("complete", (event) => {
+    // do smth..
+});
+
+/* Event Listeners END */
+
+/* Object models START */
+
+function Message() {
+    this.sendername = "";
+    this.messageHead = "";
+    this.messageBody = "";
+    this.messageFooter = "";
+    this.room = "";
+}
+
+function LoginMessage() {
+    Message.call(this); // Inheritance of Message
+    this.chatDOM = "";
+    this.loggedInAsString = "";
+    this.usersOnlineListDOM = "";
+}
+
+function FileMessage() {
+    Message.call(this); // Inheritance of Message
+    this.fileurl = "";
+}
+
+function Room() {
+    this.roomname = "";
+    this.sendername = "";
+    this.chatContent = [];
+    this.recipientname = "";
+}
+
+/* Object models END */

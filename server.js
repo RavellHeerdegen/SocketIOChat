@@ -1,23 +1,23 @@
 /* Initialisation of all modules and prototypes START */
 const express = require("express"); //Get module express
-const app = express(); //Instantiate a prototype of express
+const app = express(); // Our app is an express application
 var siofu = require("socketio-file-upload");
 
-app.use(express.static(__dirname + "/public")); //Default path for route-tracing is public/...
+app.use(express.static(__dirname + "/public")); //Default path for assets is public/...
 app.use('/js', express.static(__dirname + '/node_modules/bootstrap/dist/js')); // redirect bootstrap JS
 app.use('/js', express.static(__dirname + '/node_modules/jquery/dist')); // redirect JS jQuery
 app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css')); // redirect CSS bootstrap
+app.use('/css', express.static(__dirname + '/node_modules/@mdi/font/css')); // redirect CSS MaterialDesignIcons
 app.use(siofu.router);
 
 // Server variables START
-var users = [];
+var users = []; // Sockets
 // Server variables END
 
 /* Start Server */
-server = app.listen(3000, function() {
+server = app.listen(3000, () => {
     console.log('Server running on port 3000');
-  });
-
+});
 const io = require("socket.io")(server); // Socket is attached to server
 
 /* Routes START */
@@ -44,36 +44,43 @@ io.on("connection", (socket) => {
     uploader.listen(socket);
 
     uploader.on("start", (data) => {
-        data.file.mtime = new Date();
+        data.file.mtime = new Date(); // is needed for compatibility for all browsers
     })
 
     uploader.on("saved", (data) => {
-        console.log(data.file.name);
-        console.log(data.file.encoding);
-        console.log(data.file.meta);
-        console.log(data.file.success);
-        console.log(data.file.bytesLoaded);
-        console.log(data.file.pathName);
-        console.log("SAVED");
-        console.log(data.file.meta.room);
-        console.log(data.file.meta.sender);
+        console.log("Successfully saved file");
         data.file.pathName = data.file.pathName.replace("public", "");
+
+        fileDOMElement = 
+            "<div class='fileDomElements'>"
+        +       "<li class='list-group-item'>"
+        +       "<div class='nameDiv'>" + "<p>" + data.file.meta.sender + "</p>" + "</div>"
+        +       "<div class='fileDiv'>"
+        +           "<div class='filePic'>" + "<i class='material-icons'>input</i>" + "</div>"
+        +           "<div class='fileName'>" + "<span>" + data.file.name + "</span>" + "</div>"
+        +           "<div class='fileDownload'>" + "<a href='" + data.file.pathName + "' download='" + data.file.name + "'>" + "<i class='material-icons undownloadedFile'>get_app</i>" + "</a>" + "</div>"
+        +       "</div>"
+        +       "</li>"
+        +   "</div>";
         
         io.in(data.file.meta.room).emit("file", {
             room: data.file.meta.room,
             url: data.file.pathName,
-            sender: data.file.meta.sender,
-            filename: data.file.name
+            file: fileDOMElement
         });
     });
 
     uploader.on("error", (data) => {
-
         console.log(data);
-        console.log("FAIL");
+        console.log("Failed to upload file");
+        data.file.clientDetail.errorDOMElement = "<div class='errorDomElements'>" 
+        + "<li class='list-group-item'>"
+        + "<p>" + data.file.meta.sender + "</p>"
+        + "<div class='textDiv'>" + "<span class='text-danger errorMessage'> File upload failed. </span>" + "</div>"
+        + "</li>"
+        + "</div>"
     });
     //Socket is the connection of the user
-    socket.username = "Anonymous";
     
     /**
      * Event triggered when receiving a login-emit of a client
@@ -87,18 +94,21 @@ io.on("connection", (socket) => {
      * Creates a private room for two chat partners and emits it to the client for visual feedback
      */
     socket.on("create_private_room", (data) => {
+
         ownUsername = socket.username;
         otherUsername = data.othername;
-        roomname = ownUsername + otherUsername;
-        socket.join(roomname);
+        room = new Room;
+        room.roomname = ownUsername + otherUsername;
+        room.sendername = ownUsername;
+        room.recipientname = otherUsername; 
+        
+        socket.join(room.roomname);
         othersocket = users.find(f => f.username === otherUsername);
-        othersocket.join(roomname);
+        othersocket.join(room.roomname);
         buildChatTabs(socket.username);
         buildChatTabs(othersocket.username);
-        io.in(roomname).emit("established_private_room", {
-            room: roomname,
-            requestorsocketname: ownUsername,
-            newchatwindow: "<ul class='list-group' id='" + roomname + "window" + "'></ul>"
+        io.in(room.roomname).emit("established_private_room", {
+            room: room
         });
     });
 
@@ -111,17 +121,18 @@ io.on("connection", (socket) => {
      * Event triggered when receiving a send_all-emit of a client
      */
     socket.on("send", (data) => {
-        io.in(data.room).emit("send", {
-            message: "<li class='list-group-item'>" + socket.username + ": " + 
-                data.message + "<small class='text-info'>" + " " +  new Date().toUTCString() + "</small>" + "</li>",
-            room: data.room 
+        message = data.message;
+        room = data.room;
+        userMessage = buildTextMessage(socket, message, room);
+        io.in(room).emit("send", {
+            message: userMessage
         });
     });
 
     /**
      * Event triggered when closing the tab, logging out or timing out or refreshing page
      */
-    socket.on("disconnect", (callback) => {
+    socket.on("disconnecting", (callback) => {
         callback = emitLogoutEvent;
         callback(socket);
     });
@@ -137,13 +148,22 @@ io.on("connection", (socket) => {
  * @param {string} the username of the connecting client
  */
 function proofUsername(username) {
-    usernameFound = false;
-    for(i = 0; i < users.length; i++) {
-        if (users[i].username === username) {
-            return true;
+    username = username.trim();
+    // Proof of length
+    if (username.length < 3 || username.length > 24) {
+        return "Username is too short or too long (3 - 24 characters)";
+    // Proof of characters
+    } else if(!/^([a-z]|[A-Z])+.*/.test(username) || username === "undefined") {
+        return "Username is invalid (Begin with letter)";
+    // Proof of existence
+    } else {
+        for (i = 0; i < users.length; i++) {
+            if (users[i].username === username) {
+                return "Username already taken";
+            }
         }
+        return "valid";
     }
-    return false;
 }
 
 /**
@@ -152,25 +172,42 @@ function proofUsername(username) {
  * @param {any} data the login data like username and socket.id
  */
 function emitLoginEvent(socket, data) {
-    usernameFound = proofUsername(data.username);
-    if (usernameFound) {
-        socket.emit('login_failed', {text: "Username already taken."}); //send fail-emit to sender socket
+    usernameValid = proofUsername(data.username);
+    if (usernameValid !== "valid") {
+        socket.emit('login_failed', {text: usernameValid}); //send fail-emit to sender socket
     } else {
         socket.username = data.username;
         socket.id = data.userid;
         socket.join("AllChat");
-        users.push(socket);
-        activeuserscontent = buildOnlineUsersList();
+        users.push(socket); // Add client to active users
+        // Build the message object
+        userConnectedMessage = buildLoginMessage(socket);
         io.in("AllChat").emit("login_successful", { // emit to all users in allchat-room
-            username: socket.username,
-            loggedinas: "Logged in as " + socket.username, 
-            loggedinusers: "Number of users: " + users.length,
-            userconnectedstring: "<li class='list-group-item text-success'>" +
-                socket.username + " has connected"  + "</li>",
-            usersonlinelist: activeuserscontent,
-            newchatwindow: "<ul class='list-group' id='AllChatwindow'></ul>"
+            message: userConnectedMessage
         });
     } 
+}
+
+/**
+ * Builds the login message of a new user
+ * @param {Socket} socket the client which connected to the server
+ */
+function buildLoginMessage(socket) {
+    userConnectedMessage = new Message;
+    userConnectedMessage.sendername = socket.username;
+    userConnectedMessage.room = new Room;
+    userConnectedMessage.room.roomname = "AllChat";
+    userConnectedMessage.room.sendername = socket.id;
+    userConnectedMessage.room.recipientname = socket.id;
+    //build message head body and footer
+    userConnectedMessage.messageHead = "";
+    userConnectedMessage.messageBody = "<div class='text-success bodyMessageDiv'>" + userConnectedMessage.sendername + " has connected" + "</div>";
+    userConnectedMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toUTCString() + "</div>"; 
+    // ---
+    userConnectedMessage.chatDOM = "<ul class='list-group' id='chatWindow'></ul>";
+    userConnectedMessage.loggedInAsString = "Logged in as " + userConnectedMessage.sendername;
+    userConnectedMessage.usersOnlineListDOM = buildOnlineUsersList();
+    return userConnectedMessage;
 }
 
 /**
@@ -179,21 +216,49 @@ function emitLoginEvent(socket, data) {
  */
 function emitLogoutEvent(socket) {
     var index;
-    var disconnectingUser;
     for (i = 0; i < users.length; i++) {
         if (users[i].username === socket.username) {
             index = i;
-            disconnectingUser = users[i].username;
         }
     }
-    users.splice(index, 1);
-    activeuserscontent = buildOnlineUsersList();
-    io.in("AllChat").emit("disconnect", { // emit to all users in allchat-room
-        userdisconnectedstring: "<li class='list-group-item text-danger'>" + disconnectingUser +
-            " has disconnected" + "</li>", 
-        loggedinusers: "Number of users: " + users.length,
-        usersonlinelist: activeuserscontent
+    users.splice(index, 1); // Delete disconnecting user from active users
+    userDisconnectedMessage = buildLogoutMessage(socket);
+    io.in("AllChat").emit("disconnecting", { // emit to all users in allchat-room
+        message: userDisconnectedMessage
     });
+}
+
+/**
+ * Builds the logout message of an user
+ * @param {Socket} socket the client which disconnected from the server
+ */
+function buildLogoutMessage(socket) {
+    userDisconnectedMessage = new Message;
+    userDisconnectedMessage.sendername = socket.username;
+    userDisconnectedMessage.messageHead = "";
+    userDisconnectedMessage.messageBody = "<div class='text-danger bodyMessageDiv'>" + userDisconnectedMessage.sendername + " has disconnected" + "</div>";
+    userDisconnectedMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toUTCString() + "</div>";
+    userDisconnectedMessage.usersOnlineListDOM = buildOnlineUsersList();
+    userDisconnectedMessage.room = new Room;
+    userDisconnectedMessage.room.roomname = "AllChat";
+    return userDisconnectedMessage;
+}
+
+/**
+ * Builds a normal text-message of an user
+ * @param {Socket} socket the client which sends the message
+ * @param message the message to send
+ * @param room the name of the room to send the message to
+ */
+function buildTextMessage(socket, message, room) {
+    userMessage = new Message;
+    userMessage.sendername = socket.username;
+    userMessage.messageHead = "<div class='headMessageDiv'>" + "<p class='nameMessageTag'>" + userMessage.sendername + "</p>" + "</div>";
+    userMessage.messageBody = "<div class='bodyMessageDiv'>" + message + "</div>";
+    userMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toUTCString() + "</div>";
+    userMessage.room = new Room;
+    userMessage.room.roomname = room;
+    return userMessage;
 }
 
 /**
@@ -212,7 +277,7 @@ function buildOnlineUsersList() {
 }
 
 /**
- * 
+ * Builds the chat tabs area of one client
  * @param {string} username the username of the socket (client)
  */
 function buildChatTabs(username) {
@@ -232,4 +297,35 @@ function buildChatTabs(username) {
 }
 
 /* Callbacks and Event Handlings END */
+
+/* Object models START */
+
+function Message() {
+    this.sendername = "";
+    this.messageHead = "";
+    this.messageBody = "";
+    this.messageFooter = "";
+    this.room = "";
+}
+
+function LoginMessage() {
+    Message.call(this);
+    this.chatDOM = "";
+    this.loggedInAsString = "";
+    this.usersOnlineListDOM = "";
+}
+
+function FileMessage() {
+    Message.call(this); // Inheritance of Message
+    this.fileurl = "";
+}
+
+function Room() {
+    this.roomname = "";
+    this.sendername = "";
+    this.chatContent = [];
+    this.recipientname = "";
+}
+
+/* Object models END */
 

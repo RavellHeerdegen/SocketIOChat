@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Super Chat Bros.</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <script src="/js/jquery.js"></script>
     <script src="/js/bootstrap.min.js"></script>
@@ -24,11 +25,8 @@
         <div class="row" id="chatRow">
             <div class="col-sm-10" id="chatColumn">
                 <div class="row" id="headerInfo">
-                    <div class="col-sm-4">
+                    <div class="col-sm-10">
                         <h3 id="loggedInUserName"></h3>
-                    </div>
-                    <div class="col-sm-6">
-                        <h3 id="loggedInUsersCount"></h3>
                     </div>
                     <div class="col-sm-2">
                         <button class="btn btn-warning" type="button" id="logoutButton">Logout</button>
@@ -40,7 +38,7 @@
                     </div>
                 </div>
                 <div class="row" id="chatContent">
-                    <div class="col-sm-12" id="chatMessagesWindow">
+                    <div class="col-sm-12" id="chatWindowDiv">
 
                     </div>
                 </div>
@@ -53,8 +51,11 @@
                         </div>
                     </div>
                     <div class="col-sm-2">
-                        <button class="btn btn-primary" type="button" id="messageSendButton">Send</button>
-                        <input type="file" id="siofu_input">
+                        <button class="btn btn-primary" type="button" id="messageSendButton"><i class="material-icons">send</i></button>
+                        <label class="btn btn-primary btn-file">
+                        <i class="material-icons">attach_file</i>
+                        <input type="file" id="file_input" style="display: none;">
+                        </label>
                     </div>
                 </div>
             </div>
