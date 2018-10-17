@@ -8,30 +8,42 @@
     <script src="/js/bootstrap.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
-<body>
+<body> 
     <div class="container" id="loginDiv">
-        <h1>Please login with a username</h1>
+        <h1>Super Chat Bros.</h1>
         <div class="form" action="">
             <div class="form-group" id="loginFormGroup">
                 <label>Username:</label>
-                <input type="text" class="form-control" id="usernameInput">
+                <input type="text"  placeholder="enter your username" class="form-control" id="usernameInput">
                 <label class="text-danger" id="loginFailedLabel"></label>
             </div>
-            <button class="btn btn-primary" type="button" id="loginButton">Login</button>
+            <button class="btn btn-primary" type="button" id="loginButton">Chat with your Bro</button>
         </div>
     </div>
 
     <div class="container" id="chatDiv">
+        <div id="headerInfo">
+            <span style="font-size:20px;cursor:pointer" onclick="openNav()">&#9776;Show Users</span>
+            <h3 id="loggedInUserName"></h3>
+            <button class="btn btn-warning" type="button" id="logoutButton">Logout</button>
+        </div>
+ 
         <div class="row" id="chatRow">
-            <div class="col-sm-10" id="chatColumn">
-                <div class="row" id="headerInfo">
-                    <div class="col-sm-10">
-                        <h3 id="loggedInUserName"></h3>
-                    </div>
-                    <div class="col-sm-2">
-                        <button class="btn btn-warning" type="button" id="logoutButton">Logout</button>
+               
+            <div id="mySidenav" class="usernav">
+                <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+                <div class="col-sm-2" id="usersColumn">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <ul class="list-group" id="usersonlinelist">
+                                
+                            </ul>
+                        </div>
                     </div>
                 </div>
+            </div>
+            <div class="col-sm-10" id="chatColumn">
+                
                 <div class="row" id="roomsContent">
                     <div class="col-sm-12" id="roomsTabsWindow">
 
@@ -59,16 +71,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-sm-2" id="usersColumn">
-                <div class="row">
-                    <div class="col-sm-12">
-                        <label>Users online</label>
-                        <ul class="list-group" id="usersonlinelist">
-                            
-                        </ul>
-                    </div>
-                </div>
-            </div>
+           
         </div>
     </div>
     <script src="/socket.io/socket.io.js"></script>
