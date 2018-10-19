@@ -99,14 +99,13 @@ io.on("connection", (socket) => {
         otherUsername = data.othername;
         room = new Room;
         room.roomname = ownUsername + otherUsername;
-        room.sendername = ownUsername;
-        room.recipientname = otherUsername; 
+        room.sendername = ownUsername; //Fritz
+        room.recipientname = otherUsername; //Ursula
         
         socket.join(room.roomname);
         othersocket = users.find(f => f.username === otherUsername);
         othersocket.join(room.roomname);
-        buildChatTabs(socket.username);
-        buildChatTabs(othersocket.username);
+
         io.in(room.roomname).emit("established_private_room", {
             room: room
         });
@@ -114,7 +113,7 @@ io.on("connection", (socket) => {
 
     socket.on("update_chattabs", (data, callback) => {
         callback = buildChatTabs;
-        callback(data.username);
+        callback(data);
     });
 
     /**
@@ -178,6 +177,7 @@ function emitLoginEvent(socket, data) {
     } else {
         socket.username = data.username;
         socket.id = data.userid;
+        socket.colorCode = data.color;
         socket.join("AllChat");
         users.push(socket); // Add client to active users
         // Build the message object
@@ -197,8 +197,8 @@ function buildLoginMessage(socket) {
     userConnectedMessage.sendername = socket.username;
     userConnectedMessage.room = new Room;
     userConnectedMessage.room.roomname = "AllChat";
-    userConnectedMessage.room.sendername = socket.id;
-    userConnectedMessage.room.recipientname = socket.id;
+    userConnectedMessage.room.sendername = "AllChat";
+    userConnectedMessage.room.recipientname = "AllChat";
     //build message head body and footer
     userConnectedMessage.messageHead = "";
     userConnectedMessage.messageBody = "<div class='text-success bodyMessageDiv'>" + userConnectedMessage.sendername + " has connected" + "</div>";
@@ -253,7 +253,7 @@ function buildLogoutMessage(socket) {
 function buildTextMessage(socket, message, room) {
     userMessage = new Message;
     userMessage.sendername = socket.username;
-    userMessage.messageHead = "<div class='headMessageDiv'>" + "<p class='nameMessageTag'>" + userMessage.sendername + "</p>" + "</div>";
+    userMessage.messageHead = "<div class='headMessageDiv' style='" + "color:" + socket.colorCode + "'>" + "<p class='nameMessageTag'>" + userMessage.sendername + "</p>" + "</div>";
     userMessage.messageBody = "<div class='bodyMessageDiv'>" + message + "</div>";
     userMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toUTCString() + "</div>";
     userMessage.room = new Room;
@@ -268,26 +268,31 @@ function buildOnlineUsersList() {
     content = "";
     for (i = 0; i < users.length; i++) {
         content = content + 
-            "<div class='row'><button type='button' class='btn btn-default' id='" + 
-            users[i].username + "'" + " onclick='createPrivateRoom(" + users[i].username  + ")'>" +
+            "<button type='button' class='btn btn-dark' id='" + 
+            users[i].username + "'" + " onclick='createPrivateRoom(" + users[i].username  + ")'" +
+            "style='" + "background:" + "linear-gradient(" + "110deg," + users[i].colorCode + " 30%," + "dimgrey 30%" + ")" + "'>" +
             users[i].username + 
-            "</button></div>";
+            "</button>";
     }
     return content;
 }
 
 /**
  * Builds the chat tabs area of one client
- * @param {string} username the username of the socket (client)
+ * @param {string} data the data of the socket (client)
  */
-function buildChatTabs(username) {
-    socket = users.find(f => f.username === username);
+function buildChatTabs(data) {
+    socket = users.find(f => f.username === data.username);
     chatTabsDOMElements = "";
-    rooms = Object.keys(socket.rooms);
+    rooms = data.rooms;
     rooms.forEach(room => {
-        if (room != socket.id) {
-            chatTabDOM = "<button type='button' class='btn btn-default' id='" + room + 
-                "' onclick='switchChatTabs(" + room  + ")'>" + room + "</button>";
+        if (room.sendername === socket.username) {
+            chatTabDOM = "<button type='button' class='btn btn-dark' id='" + room.roomname + 
+            "' onclick='switchChatTabs(" + room.roomname  + ")'>" + room.recipientname + "</button>";
+            chatTabsDOMElements += chatTabDOM;
+        } else {
+            chatTabDOM = "<button type='button' class='btn btn-dark' id='" + room.roomname + 
+            "' onclick='switchChatTabs(" + room.roomname  + ")'>" + room.sendername + "</button>";
             chatTabsDOMElements += chatTabDOM;
         }
     });

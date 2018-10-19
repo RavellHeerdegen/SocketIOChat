@@ -3,94 +3,236 @@
 body, html {
     height: 100%;
     width: 100%;
+    background: #424242;
 }
 
-/* ------------------ */
-
-/* CHAT */
+/* GENERAL END ------------------ */
 
 #chatDiv {
     height: 100%;
+    display: flex;
+    flex-flow: column;
 }
 
-#chatRow {
-    height: 100%;
+#headerInfo {
+    display: flex;
+    flex: 1 1 auto;
+    height: 60px;
+
+}
+
+#headerLoggedInAsDiv {
+    display: flex;
+    align-items: center;
+    padding-left: 0;
+    color: lightgray;
+}
+
+#logoutButtonDiv {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 0;
+}
+
+#mainframe {
+    display: flex;
+    flex-flow: column;
+    height: calc(100% - 60px);
+}
+
+#chatHeaderDiv {
+    height: 90px;
+    display: flex;
+}
+
+#logoDiv {
+    display: flex;
+    padding-left: 0;
+    color: lightgray;
+}
+
+#roomsTabsWindow {
+    display: flex;
+    flex-flow: row;
+    align-items: flex-end;
+    padding-left: 0;
+    overflow-x: auto;
+}
+
+#roomsTabsWindow button {
+    margin-right: 6px;
+    min-width: 80px;
+    max-width: 140px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    color: lightgray;
+}
+
+#chatContentDiv {
+    display: flex;
+    height: calc(100% - 90px);
+}
+
+#usersColumn {
+    display: flex;
+    overflow: auto;
+    padding-left: 0;
+}
+
+#usersonlinelist {
+    width: 100%;
+}
+
+#usersonlinelist button {
+    min-width: 90%;
+    margin-bottom: 6px;
+    min-height: 38px;
 }
 
 #chatColumn {
     height: 100%;
 }
 
-#usersColumn {
-    height: 100%;
+#chatWindow {
+    width: 100%; 
 }
 
-#headerInfo {
-    height: 50px;
-    display: flex;
-  
+#chatWindowDiv {
+    height: calc(100% - 90px);
+    overflow-y: auto;
 }
 
-#chatContent {
-    height: calc(100% - 240px);
+#chatWindow li {
+    max-width: 70%;
+    overflow-wrap: break-word;
+    margin-bottom: 6px;
+}
+
+.ownListItemDiv {
+}
+
+.ownListItem {
+    float: right;
+    background: #BDDB82;
+}
+
+.otherListItem {
+    float: left;
+}
+
+.otherListItemDiv {
+}
+
+.headMessageDiv {
+    font-size: small;
+    font-weight: bold;
+}
+
+.footerMessageDiv {
+    float: right;
+    font-size: x-small;
+    color: #212121;
 }
 
 #sendArea {
-    height: 120px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    height: 60px;
+    margin-top: 12px;
 }
 
-/* ------------------ */
+#inputFieldDiv {
+    display: flex;
+    flex-flow: row;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+#messageInputField {
+    height: 52px;
+    width: 100%;
+}
+
+#sendButtonsDiv {
+    display: flex;
+    flex-flow: row;
+    padding-right: 0;
+}
+
+#sendButtonsDiv label {
+    height: 52px;
+}
+
+#sendFormGroup {
+    height: 52px;
+}
+
+#message {
+    height: 52px;
+}
+
+#messageSendButtonDiv {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-right: 0;
+    padding-left: 0;
+}
+
+#messageSendButton {
+    min-width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#fileSendButtonDiv {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 0;
+}
+
+#fileSendButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
 /* LOGIN */
 
 #loginDiv {
-    height: 100%;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    justify-content: center;
 }
 
-/* ------------------ */
-
-/* NavBar UserList */
-.usernav {
-    height: 100%;
-    width: 0;
-    position: fixed;
-    z-index: 1;
-    top: 0;
-    left: 0;
-    background-color: #595959;
-    overflow-x: hidden;
-    transition: 0.5s;
-    padding-top: 60px;
+#logoDiv {
+    display: flex;
+    justify-content: center;
 }
 
-.usernav a {
-    padding: 8px 8px 8px 32px;
-    text-decoration: none;
-    font-size: 25px;
-    color: #818181;
-    display: block;
-    transition: 0.3s;
+#logoTextDiv {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: lightgray;
+}
+
+#inputFormDiv {
+    display: flex;
+    flex-flow: column;
+    width: 45%;
+}
+
+#loginButtonDiv {
+    display: flex;
+    justify-content: center;
+}
+
+#loginButton {
+    min-height: 60px;
 }
 
 
-.usernav .closebtn {
-    position: absolute;
-    top: 0;
-    right: 25px;
-    font-size: 36px;
-    margin-left: 50px;
-}
-
-@media screen and (max-height: 450px) {
-  .usernav {padding-top: 15px;}
-  .usernav a {font-size: 18px;}
-}
-
-.col-sm-2{
-    padding-left: 30px;
-}
-
-/* ------------------ */
+/* LOGIN END ------------------ */

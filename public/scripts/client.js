@@ -1,10 +1,22 @@
+// Starting up client side
 var socket = io.connect("http://localhost:3000");
 var uploader = new SocketIOFileUpload(socket);
 uploader.listenOnInput(document.getElementById("file_input"));
 
+// DIVs START
+var chatDiv = $("#chatDiv").hide();
+var loginDiv = $("#loginDiv");
+var chatWindowDiv = $("#chatWindowDiv");
+// DIVs END
+
 // loginVariables START
 var loginButton = $("#loginButton");
 var usernameInput = $("#usernameInput");
+$("#usernameInput").keyup(function(event) {
+    if (event.keyCode === 13) {
+        $("#loginButton").click();
+    }
+});
 // loginVariables END
 
 // logoutVariables START
@@ -14,6 +26,11 @@ var logoutButton = $("#logoutButton");
 // sendVariables START
 var message = $("#message");
 var messageSendButton = $("#messageSendButton");
+$("#message").keyup(function(event) {
+    if (event.keyCode === 13) {
+        $("#messageSendButton").click();
+    }
+});
 // sendVariables END
 
 // chatVariables START
@@ -21,13 +38,8 @@ var activeroom;
 var loggedInUserName;
 // chatVariables END
 
-// DIVs START
-var loginDiv = $("#loginDiv");
-var chatDiv = $("#chatDiv").hide();
-var chatWindowDiv = $("#chatWindowDiv");
-// DIVs END
-
 // Personal data START
+var colorCode;
 var username;
 var userId;
 var rooms = [];
@@ -41,7 +53,8 @@ var rooms = [];
 loginButton.click(() => {
     username = usernameInput.val();
     userId = socket.id;
-    socket.emit("login", {username: username, userid: userId});
+    colorCode = "#" + ('00000' + (Math.random() * (1<<24) | 0).toString(16)).slice(-6);
+    socket.emit("login", {username: username, userid: userId, color: colorCode});
 });
 
 /**
@@ -60,6 +73,8 @@ messageSendButton.click(() => {
     // check length of message
     if (message.val().trim().length > 120) {
       alert("Message too long (180 characters limited)");  
+    } else if(message.val().trim().length === 0) {
+        
     } else {
         socket.emit("send", {message: message.val(), room: activeroom.roomname});
         message.val("");
@@ -71,14 +86,14 @@ messageSendButton.click(() => {
 /* Socket.on Events START */
 
 /**
- * Handles the send_all socket-event of the server
+ * Handles the send socket-event of the server
  */
 socket.on("send", (data) => {
     buildChatItem(data.message);
 });
 
 /**
- * Handles the disconnect_all socket-event of the server
+ * Handles the disconnecting socket-event of the server
  */
 socket.on("disconnecting", (data) => {
     $("#usersonlinelist").html(data.message.usersOnlineListDOM);
@@ -115,7 +130,8 @@ socket.on("established_private_room", (data, callback) => {
         $("#chatWindow").empty(); // empty the chat window
     }
     callback = () => { socket.emit("update_chattabs", {
-        username: username
+        username: username,
+        rooms: rooms
     })};
     callback();
 });
@@ -131,7 +147,7 @@ socket.on("update_chattabs", (data) => {
  * Adds a download item to the chatcontext and serves the path to the file received
  */
 socket.on("file", (data) => {
-    $("#" + data.room + "window").html($("#" + data.room + "window").html() + data.file);
+    $("#" + "chatWindow").html($("#" + "chatWindow").html() + data.file);
 });
 
 /* Socket.on Events END */
@@ -151,8 +167,10 @@ function loadLoginConfiguration(data, callback) {
     loginDiv.hide();
     chatDiv.show();
     socket.emit("update_chattabs", {
-        username: username
+        username: username,
+        rooms: rooms
     });
+    $("#message").focus();
 }
 
 /**
@@ -160,15 +178,17 @@ function loadLoginConfiguration(data, callback) {
  * @param {Message} data the message going to get built in the chat window 
  */
 function buildChatItem(data) {
-    listItemDiv = "<div class='listItemDiv'>";
+    listItemDiv = "";
     builtListItem = "";
     if (data.sendername === username) {
+        listItemDiv = "<div class='ownListItemDiv'>";
         listItem = "<li class='list-group-item ownListItem'>";
         listItem = listItem + data.messageBody;
         listItem = listItem + data.messageFooter;
         listItem = listItem + "</li>";
         builtListItem = listItem;
     } else {
+        listItemDiv = "<div class='otherListItemDiv'>";
         listItem = "<li class='list-group-item otherListItem'>";
         listItem = listItem + data.messageHead;
         listItem = listItem + data.messageBody;
@@ -183,6 +203,8 @@ function buildChatItem(data) {
     activeroom.chatContent.forEach(message => {
         $("#chatWindow").html($("#chatWindow").html() + message);
     })
+
+    $("#chatWindowDiv").stop().animate({ scrollTop: $("#chatWindowDiv")[0].scrollHeight}, 1000);
 }
 
 /**
@@ -204,6 +226,7 @@ function switchChatTabs(chattabbutton) {
             room.chatContent.forEach(message => {
                 $("#chatWindow").html($("#chatWindow").html() + message);
             });
+            activeroom = room;
         }
     });
 }
@@ -279,16 +302,3 @@ function Room() {
 }
 
 /* Object models END */
-
-/* NavBar START */
-function openNav() {
-    document.getElementById("mySidenav").style.width = "250px";
-    document.getElementById("main").style.marginLeft = "250px";
-}
-
-function closeNav() {
-    document.getElementById("mySidenav").style.width = "0";
-    document.getElementById("main").style.marginLeft= "0";
-}
-
-/* NavBar END */
