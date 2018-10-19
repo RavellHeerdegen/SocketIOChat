@@ -1,3 +1,5 @@
+/* JAN POHL 761383, RAVELL HEERDEGEN 761330 */
+
 /* Initialisation of all modules and prototypes START */
 const express = require("express"); //Get module express
 const app = express(); // Our app is an express application
@@ -51,22 +53,27 @@ io.on("connection", (socket) => {
         console.log("Successfully saved file");
         data.file.pathName = data.file.pathName.replace("public", "");
 
-        fileDOMElement = 
-            "<div class='fileDomElements'>"
-        +       "<li class='list-group-item'>"
-        +       "<div class='nameDiv'>" + "<p>" + data.file.meta.sender + "</p>" + "</div>"
-        +       "<div class='fileDiv'>"
-        +           "<div class='filePic'>" + "<i class='material-icons'>input</i>" + "</div>"
-        +           "<div class='fileName'>" + "<span>" + data.file.name + "</span>" + "</div>"
-        +           "<div class='fileDownload'>" + "<a href='" + data.file.pathName + "' download='" + data.file.name + "'>" + "<i class='material-icons undownloadedFile'>get_app</i>" + "</a>" + "</div>"
-        +       "</div>"
-        +       "</li>"
-        +   "</div>";
+        // FIlemapping
+
+        userMessage = new Message;
+        userMessage.sendername = data.file.meta.sender;
+        userMessage.messageHead = "<div class='headMessageDiv' style='" + "color:" + socket.colorCode + "'>" + "<p class='nameMessageTag'>" + userMessage.sendername + "</p>" + "</div>";
+        userMessage.messageBody = 
+        "<div class='bodyMessageDiv'>" +
+            "<div class='row'>" +
+                "<div style='display: flex; justify-content: center; padding-right: 0; width: 60px'>" + "<i class='material-icons fileIncomeIcon'>input</i>" + "</div>" +
+                "<div class='fileNameSpan' style='padding-left: 0'>" + data.file.name + "</div>" +
+                "<div style='padding-left: 0; width: 80px; margin-right: 16px;'>" + 
+                    "<a href='" + data.file.pathName + "' download='" + data.file.name + "' class='btn' style='width: 100%; background: #43a047'><i class='material-icons' style='color: lightgrey'>get_app</i></a>" +
+                "</div>" +
+            "</div>" +
+        "</div>";
+        userMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toUTCString() + "</div>";
+        userMessage.room = new Room;
+        userMessage.room.roomname = data.file.meta.room;
         
         io.in(data.file.meta.room).emit("file", {
-            room: data.file.meta.room,
-            url: data.file.pathName,
-            file: fileDOMElement
+            message: userMessage
         });
     });
 
@@ -201,11 +208,11 @@ function buildLoginMessage(socket) {
     userConnectedMessage.room.recipientname = "AllChat";
     //build message head body and footer
     userConnectedMessage.messageHead = "";
-    userConnectedMessage.messageBody = "<div class='text-success bodyMessageDiv'>" + userConnectedMessage.sendername + " has connected" + "</div>";
+    userConnectedMessage.messageBody = "<div class='bodyMessageDiv' style='color: #00ff6a'>" + userConnectedMessage.sendername + " has connected" + "</div>";
     userConnectedMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toUTCString() + "</div>"; 
     // ---
     userConnectedMessage.chatDOM = "<ul class='list-group' id='chatWindow'></ul>";
-    userConnectedMessage.loggedInAsString = "Logged in as " + userConnectedMessage.sendername;
+    userConnectedMessage.loggedInAsString = userConnectedMessage.sendername;
     userConnectedMessage.usersOnlineListDOM = buildOnlineUsersList();
     return userConnectedMessage;
 }
@@ -270,7 +277,7 @@ function buildOnlineUsersList() {
         content = content + 
             "<button type='button' class='btn btn-dark' id='" + 
             users[i].username + "'" + " onclick='createPrivateRoom(" + users[i].username  + ")'" +
-            "style='" + "background:" + "linear-gradient(" + "110deg," + users[i].colorCode + " 30%," + "dimgrey 30%" + ")" + "'>" +
+            "style='" + "background:" + "linear-gradient(" + "110deg," + users[i].colorCode + " 20%," + "#37474f 20%" + ")" + "'>" +
             users[i].username + 
             "</button>";
     }
@@ -287,11 +294,11 @@ function buildChatTabs(data) {
     rooms = data.rooms;
     rooms.forEach(room => {
         if (room.sendername === socket.username) {
-            chatTabDOM = "<button type='button' class='btn btn-dark' id='" + room.roomname + 
+            chatTabDOM = "<button type='button' class='btn' style='background: #37474f' id='" + room.roomname + 
             "' onclick='switchChatTabs(" + room.roomname  + ")'>" + room.recipientname + "</button>";
             chatTabsDOMElements += chatTabDOM;
         } else {
-            chatTabDOM = "<button type='button' class='btn btn-dark' id='" + room.roomname + 
+            chatTabDOM = "<button type='button' class='btn' style='background: #37474f' id='" + room.roomname + 
             "' onclick='switchChatTabs(" + room.roomname  + ")'>" + room.sendername + "</button>";
             chatTabsDOMElements += chatTabDOM;
         }

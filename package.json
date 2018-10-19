@@ -4,7 +4,7 @@
   "description": "exerciseone",
   "main": "server.js",
   "scripts": {},
-  "author": "Ravell",
+  "author": "Jan Pohl 761383, Ravell Heerdegen 761330",
   "license": "ISC",
   "dependencies": {
     "@angular/animations": "^6.1.10",

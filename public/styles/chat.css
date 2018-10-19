@@ -1,10 +1,16 @@
+/* JAN POHL 761383, RAVELL HEERDEGEN 761330 */
+
 /* GENERAL */
+
+@font-face { font-family: 'supermario';
+    src: url('../assets/SuperMario256.ttf') format('truetype'); }
 
 body, html {
     height: 100%;
     width: 100%;
-    background: #424242;
+    background: #263238;
 }
+
 
 /* GENERAL END ------------------ */
 
@@ -25,7 +31,16 @@ body, html {
     display: flex;
     align-items: center;
     padding-left: 0;
+    padding-right: 0;
     color: lightgray;
+    justify-content: flex-end;
+    font-family: supermario, Arial, Helvetica, sans-serif;
+}
+
+#loggedInUserName {
+    margin-left: 6px;
+    margin-right: 3px;
+    padding-top: 8px;
 }
 
 #logoutButtonDiv {
@@ -33,6 +48,10 @@ body, html {
     align-items: center;
     justify-content: flex-end;
     padding-right: 0;
+}
+
+#logoutButton {
+    color: #212121;
 }
 
 #mainframe {
@@ -50,6 +69,15 @@ body, html {
     display: flex;
     padding-left: 0;
     color: lightgray;
+    margin-top: 12px;
+}
+
+#chatLogoDiv {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 0;
+    height: 90px;
 }
 
 #roomsTabsWindow {
@@ -58,6 +86,7 @@ body, html {
     align-items: flex-end;
     padding-left: 0;
     overflow-x: auto;
+    border-bottom: 1px solid lightgrey;
 }
 
 #roomsTabsWindow button {
@@ -67,6 +96,7 @@ body, html {
     text-overflow: ellipsis;
     overflow: hidden;
     color: lightgray;
+    background: #455a64;
 }
 
 #chatContentDiv {
@@ -109,19 +139,14 @@ body, html {
     margin-bottom: 6px;
 }
 
-.ownListItemDiv {
-}
-
 .ownListItem {
     float: right;
-    background: #BDDB82;
+    background: #1b5e20;
 }
 
 .otherListItem {
     float: left;
-}
-
-.otherListItemDiv {
+    background: #212121;
 }
 
 .headMessageDiv {
@@ -132,12 +157,45 @@ body, html {
 .footerMessageDiv {
     float: right;
     font-size: x-small;
-    color: #212121;
+    color: lightgray;
 }
+
+.bodyMessageDiv {
+    color: lightgray;
+    flex-flow: row;
+}
+
+.fileDownloadIcon {
+    font-size: 36px;
+}
+
+.fileIncomeIcon {
+    font-size: 36px;
+}
+
+.fileRow {
+    display: flex;
+}
+
+.fileNameSpan {
+    text-align: right;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 360px;
+    min-width: 180px;
+    margin-right: 6px;
+}
+
+.fileLink {
+    width: 100%;
+    height: 100%;
+    background: #212121;
+}
+
 
 #sendArea {
     height: 60px;
-    margin-top: 12px;
 }
 
 #inputFieldDiv {
@@ -168,6 +226,8 @@ body, html {
 
 #message {
     height: 52px;
+    background: #212121;
+    color: lightgray;
 }
 
 #messageSendButtonDiv {
@@ -213,16 +273,32 @@ body, html {
 }
 
 #logoTextDiv {
+    margin-top: 12px;
     display: flex;
     justify-content: center;
     align-items: center;
     color: lightgray;
+    flex-flow: column;
+}
+
+#logoTextDiv h3 {
+    font-family: supermario, Arial, Helvetica, sans-serif;
+}
+
+#logoTextDiv span {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: small;
 }
 
 #inputFormDiv {
     display: flex;
     flex-flow: column;
     width: 45%;
+}
+
+#usernameInput {
+    background: #212121;
+    color: lightgray;
 }
 
 #loginButtonDiv {

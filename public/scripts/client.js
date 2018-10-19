@@ -1,3 +1,5 @@
+/* JAN POHL 761383, RAVELL HEERDEGEN 761330 */
+
 // Starting up client side
 var socket = io.connect("http://localhost:3000");
 var uploader = new SocketIOFileUpload(socket);
@@ -31,6 +33,8 @@ $("#message").keyup(function(event) {
         $("#messageSendButton").click();
     }
 });
+var progressbar = $("#progressbar").css("display", "none");
+var progressbarDiv = $("#progressbarDiv").hide();
 // sendVariables END
 
 // chatVariables START
@@ -52,6 +56,7 @@ var rooms = [];
  */
 loginButton.click(() => {
     username = usernameInput.val();
+    username = username.replace(/ /g, "_");
     userId = socket.id;
     colorCode = "#" + ('00000' + (Math.random() * (1<<24) | 0).toString(16)).slice(-6);
     socket.emit("login", {username: username, userid: userId, color: colorCode});
@@ -141,13 +146,14 @@ socket.on("established_private_room", (data, callback) => {
  */
 socket.on("update_chattabs", (data) => {
     $("#roomsTabsWindow").html(data.chattabs);
+    $("#" + activeroom.roomname).css("background", "#90a4ae");
 });
 
 /**
  * Adds a download item to the chatcontext and serves the path to the file received
  */
 socket.on("file", (data) => {
-    $("#" + "chatWindow").html($("#" + "chatWindow").html() + data.file);
+    buildChatItem(data.message);
 });
 
 /* Socket.on Events END */
@@ -174,7 +180,7 @@ function loadLoginConfiguration(data, callback) {
 }
 
 /**
- * 
+ * Builds a list item for the chat window and shows it in the active chat
  * @param {Message} data the message going to get built in the chat window 
  */
 function buildChatItem(data) {
@@ -227,6 +233,9 @@ function switchChatTabs(chattabbutton) {
                 $("#chatWindow").html($("#chatWindow").html() + message);
             });
             activeroom = room;
+            $("#" + activeroom.roomname).css("background", "#90a4ae");
+        } else {
+            $("#" + room.roomname).css("background", "#37474f");
         }
     });
 }
@@ -262,12 +271,20 @@ uploader.addEventListener("error", (event) => {
 });
 
 uploader.addEventListener("start", (event) => {
+    progressbar.css("width", "0%");
     event.file.meta.room = activeroom.roomname;
     event.file.meta.sender = username;
 });
 
+uploader.addEventListener("progress", (event) => {
+    progressbarDiv.show();
+    progressbar.css("display", "block");
+    progressbar.css("width", event.bytesLoaded / event.file.size * 100 + "%");
+})
+
 uploader.addEventListener("complete", (event) => {
-    // do smth..
+    progressbar.css("display", "none");
+    progressbarDiv.hide();
 });
 
 /* Event Listeners END */

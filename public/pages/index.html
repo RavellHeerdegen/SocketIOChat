@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    <!-- Jan Pohl 761383, Ravell Heerdegen 761330 -->
     <title>Super Chat Bros.</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -13,10 +14,11 @@
 <body>
     <div class="container" id="loginDiv">
         <div class="col-sm-12" id="logoDiv">
-            <img src="../assets/smb.png">
+            <img src="../assets/scbw.png">
         </div>
         <div class="col-sm-12" id="logoTextDiv">
             <h3>Login with a username</h3>
+            <span>(3 to 24 characters)</span>
         </div>
         <div class="col-sm-12" id="inputFormDiv">
             <div class="form" action="" id="loginForm">
@@ -34,10 +36,11 @@
     <div class="container" id="chatDiv">
 
         <div id="headerInfo">
-            <div class="col-sm-8" id="headerLoggedInAsDiv">
-                <h3 id="loggedInUserName"></h3>
+            <div class="col-sm-11" id="headerLoggedInAsDiv">
+                <img src='../assets/head.png'>
+                <h6 id="loggedInUserName"></h6>
             </div>
-            <div class="col-sm-4" id="logoutButtonDiv">
+            <div class="col-sm-1" id="logoutButtonDiv">
                 <button class="btn btn-warning" type="button" id="logoutButton">Logout</button>
             </div>
         </div>
@@ -45,8 +48,8 @@
         <div id="mainframe">
 
             <div id="chatHeaderDiv">
-                <div class="col-sm-3" id="logoDiv">
-                    LOGO
+                <div class="col-sm-3" id="chatLogoDiv">
+                    <img src="../assets/scbwsmall.png">
                 </div>
                 <div class="col-sm-9" id="roomsTabsWindow">
 
@@ -67,7 +70,12 @@
 
                     </div>
 
+                    <div class="row progress" style="height: 8px; margin-bottom: 6px;" id="progressbarDiv">
+                        <div class="progress-bar progress-bar-striped bg-success progress-bar-animated" id="progressbar"></div>
+                    </div>
+
                     <div class="row" id="sendArea">
+
                         <div class="col-sm-8" id="inputFieldDiv">
                             <div class="form" action="" id="messageInputField">
                                 <div class="form-group" id="sendFormGroup">
