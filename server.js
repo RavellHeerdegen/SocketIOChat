@@ -43,14 +43,16 @@ app.get("/", (req, res) => {
 io.on("connection", (socket) => {
     var uploader = new siofu();
     uploader.dir = "./public/uploads";
+    uploader.maxFileSize = 1024 * 24000; //24 MB maximum file-size
     uploader.listen(socket);
 
+    // Handling the start event of a file upload
     uploader.on("start", (data) => {
         data.file.mtime = new Date(); // is needed for compatibility for all browsers
     })
 
+    // Handling the saved event of a file upload
     uploader.on("saved", (data) => {
-        console.log("Successfully saved file");
         data.file.pathName = data.file.pathName.replace("public", "");
 
         // FIlemapping
@@ -77,15 +79,18 @@ io.on("connection", (socket) => {
         });
     });
 
+    // Handling the error event of a file upload
     uploader.on("error", (data) => {
-        console.log(data);
-        console.log("Failed to upload file");
-        data.file.clientDetail.errorDOMElement = "<div class='errorDomElements'>" 
-        + "<li class='list-group-item'>"
-        + "<p>" + data.file.meta.sender + "</p>"
-        + "<div class='textDiv'>" + "<span class='text-danger errorMessage'> File upload failed. </span>" + "</div>"
-        + "</li>"
-        + "</div>"
+        errorMessage = new Message;
+        errorMessage.sendername = socket.username;
+        errorMessage.messageHead = "";
+        errorMessage.messageBody = "<div class='text-danger bodyMessageDiv'>" + data.error + " (24 MB)" + "</div>";
+        errorMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toUTCString() + "</div>";
+        errorMessage.room = new Room;
+        errorMessage.room.roomname = data.file.meta.room;
+
+        socket.emit("file_upload_error", {message: errorMessage});
+        
     });
     //Socket is the connection of the user
     
@@ -118,6 +123,7 @@ io.on("connection", (socket) => {
         });
     });
 
+    // Handles the updatechattabs event and delegates to build the tabs of a specific user
     socket.on("update_chattabs", (data, callback) => {
         callback = buildChatTabs;
         callback(data);
@@ -312,6 +318,9 @@ function buildChatTabs(data) {
 
 /* Object models START */
 
+/**
+ * Message model for communication
+ */
 function Message() {
     this.sendername = "";
     this.messageHead = "";
@@ -320,18 +329,27 @@ function Message() {
     this.room = "";
 }
 
+/**
+ * LoginMessage model for logins
+ */
 function LoginMessage() {
-    Message.call(this);
+    Message.call(this); // Inheritance of Message
     this.chatDOM = "";
     this.loggedInAsString = "";
     this.usersOnlineListDOM = "";
 }
 
+/**
+ * FileMessage model for file uploads
+ */
 function FileMessage() {
     Message.call(this); // Inheritance of Message
     this.fileurl = "";
 }
 
+/**
+ * Room model for chat-rooms
+ */
 function Room() {
     this.roomname = "";
     this.sendername = "";

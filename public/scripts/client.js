@@ -3,6 +3,7 @@
 // Starting up client side
 var socket = io.connect("http://localhost:3000");
 var uploader = new SocketIOFileUpload(socket);
+// Uploader listens for input events of a specific html-element
 uploader.listenOnInput(document.getElementById("file_input"));
 
 // DIVs START
@@ -56,14 +57,14 @@ var rooms = [];
  */
 loginButton.click(() => {
     username = usernameInput.val();
-    username = username.replace(/ /g, "_");
+    username = username.replace(/ /g, "_"); //delete white spaces in names
     userId = socket.id;
     colorCode = "#" + ('00000' + (Math.random() * (1<<24) | 0).toString(16)).slice(-6);
     socket.emit("login", {username: username, userid: userId, color: colorCode});
 });
 
 /**
- * Handles the logout of a user
+ * Handles the logout of a user and puts him back to the login screen
  */
 logoutButton.click((callback) => {
     socket.emit("disconnecting");
@@ -92,6 +93,7 @@ messageSendButton.click(() => {
 
 /**
  * Handles the send socket-event of the server
+ * @param data the message to get built at the client side
  */
 socket.on("send", (data) => {
     buildChatItem(data.message);
@@ -99,6 +101,7 @@ socket.on("send", (data) => {
 
 /**
  * Handles the disconnecting socket-event of the server
+ * @param data the disconnecting user-message
  */
 socket.on("disconnecting", (data) => {
     $("#usersonlinelist").html(data.message.usersOnlineListDOM);
@@ -107,6 +110,7 @@ socket.on("disconnecting", (data) => {
 
 /**
  * Handles the login_successful socket-event of the server
+ * @param data the message containing room information and the message to display on client side
  */
 socket.on("login_successful", (data, callback) => {
     $("#usersonlinelist").html(data.message.usersOnlineListDOM);
@@ -120,6 +124,7 @@ socket.on("login_successful", (data, callback) => {
 
 /**
  * Handles the login_failed event and gives feedback to the requesting client
+ * @param data the login-failed-message
  */
 socket.on("login_failed", (data) => {
     $("#loginFailedLabel").html(data.text);
@@ -127,6 +132,7 @@ socket.on("login_failed", (data) => {
 
 /**
  * Handles the creation event for a new private room, creates a new room and corresponding window
+ * @param data the room information
  */
 socket.on("established_private_room", (data, callback) => {
     rooms.push(data.room);
@@ -143,6 +149,7 @@ socket.on("established_private_room", (data, callback) => {
 
 /**
  * Updates the Chat tabs Window with the incoming chattabs elements
+ * @param data the chattabs to build at client side
  */
 socket.on("update_chattabs", (data) => {
     $("#roomsTabsWindow").html(data.chattabs);
@@ -151,9 +158,21 @@ socket.on("update_chattabs", (data) => {
 
 /**
  * Adds a download item to the chatcontext and serves the path to the file received
+ * @param data 
  */
 socket.on("file", (data) => {
     buildChatItem(data.message);
+});
+
+/**
+ * Adds an error message to the chat window
+ * @param data the error message to show in the chat
+ */
+socket.on("file_upload_error", (data) => {
+    buildChatItem(data.message);
+    progressbar.css("width", "0%");
+    progressbar.css("display", "none");
+    progressbarDiv.hide();
 });
 
 /* Socket.on Events END */
@@ -164,7 +183,7 @@ socket.on("file", (data) => {
  * Loads up the login configuration of the DOM-Elements
  * @param {LoginMessage} data the message sent if a new user connected
  */
-function loadLoginConfiguration(data, callback) {
+function loadLoginConfiguration(data) {
     activeroom = data.room;
     rooms.push(activeroom);
     chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
@@ -266,22 +285,43 @@ function createPrivateRoom(otheruser) {
 
 /* Event Listeners START */
 
+/**
+ * Listens to the error-event coming from the serverside if file upload fails
+ */
 uploader.addEventListener("error", (event) => {
-    $("#chatWindow").html($("#chatWindow").html() + event.detail.errorDOMElement);
+    if (event.code === 1) {
+        errorMessage = new Message;
+        errorMessage.sendername = username;
+        errorMessage.messageHead = "";
+        errorMessage.messageBody = "<div class='text-danger bodyMessageDiv'>" + "File is too big (max 24 MB)" + "</div>";
+        errorMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toUTCString() + "</div>";
+        errorMessage.room = new Room;
+        errorMessage.room.roomname = activeroom.roomname;
+        buildChatItem(errorMessage);
+    }
 });
 
+/**
+ * Listens to the start-event when a client inputs a file for upload
+ */
 uploader.addEventListener("start", (event) => {
     progressbar.css("width", "0%");
     event.file.meta.room = activeroom.roomname;
     event.file.meta.sender = username;
 });
 
+/**
+ * Listens to the progress-event if a file upload is processing
+ */
 uploader.addEventListener("progress", (event) => {
     progressbarDiv.show();
     progressbar.css("display", "block");
     progressbar.css("width", event.bytesLoaded / event.file.size * 100 + "%");
 })
 
+/**
+ * Listens to the complete event if a file upload succeeded
+ */
 uploader.addEventListener("complete", (event) => {
     progressbar.css("display", "none");
     progressbarDiv.hide();
@@ -291,6 +331,9 @@ uploader.addEventListener("complete", (event) => {
 
 /* Object models START */
 
+/**
+ * Message model for communication
+ */
 function Message() {
     this.sendername = "";
     this.messageHead = "";
@@ -299,6 +342,9 @@ function Message() {
     this.room = "";
 }
 
+/**
+ * LoginMessage model for logins
+ */
 function LoginMessage() {
     Message.call(this); // Inheritance of Message
     this.chatDOM = "";
@@ -306,11 +352,17 @@ function LoginMessage() {
     this.usersOnlineListDOM = "";
 }
 
+/**
+ * FileMessage model for file uploads
+ */
 function FileMessage() {
     Message.call(this); // Inheritance of Message
     this.fileurl = "";
 }
 
+/**
+ * Room model for chat-rooms
+ */
 function Room() {
     this.roomname = "";
     this.sendername = "";
