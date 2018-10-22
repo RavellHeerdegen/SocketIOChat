@@ -55,20 +55,35 @@ io.on("connection", (socket) => {
     uploader.on("saved", (data) => {
         data.file.pathName = data.file.pathName.replace("public", "");
 
+        fileDiv = "";
         // FIlemapping
-
-        userMessage = new Message;
-        userMessage.sendername = data.file.meta.sender;
-        userMessage.messageHead = "<div class='headMessageDiv' style='" + "color:" + socket.colorCode + "'>" + "<p class='nameMessageTag'>" + userMessage.sendername + "</p>" + "</div>";
-        userMessage.messageBody = 
-        "<div class='bodyMessageDiv'>" +
+        if (data.file.meta.type.includes("image")){
+            fileDiv = "<div class='row'>" +
+                "<div style='display: flex; justify-content: center; padding-right: 0'>" + "<img src='" + data.file.pathName + "' style='width: 200px; height: 200px'></div>" +
+            "</div>" +
+            "<div class='row'>" +
+                "<div class='fileNameSpan' style='padding-left: 0'>" + data.file.name + "</div>" +
+                "<div style='padding-left: 0; width: 80px; margin-right: 16px;'>" + 
+                    "<a href='" + data.file.pathName + "' download='" + data.file.name + "' class='btn' style='width: 100%; background: #43a047'><i class='material-icons' style='color: lightgrey'>get_app</i></a>" +
+                "</div>" +
+            "</div>";
+        } else {
+            fileDiv = 
             "<div class='row'>" +
                 "<div style='display: flex; justify-content: center; padding-right: 0; width: 60px'>" + "<i class='material-icons fileIncomeIcon'>input</i>" + "</div>" +
                 "<div class='fileNameSpan' style='padding-left: 0'>" + data.file.name + "</div>" +
                 "<div style='padding-left: 0; width: 80px; margin-right: 16px;'>" + 
                     "<a href='" + data.file.pathName + "' download='" + data.file.name + "' class='btn' style='width: 100%; background: #43a047'><i class='material-icons' style='color: lightgrey'>get_app</i></a>" +
                 "</div>" +
-            "</div>" +
+            "</div>";
+        }
+
+        userMessage = new Message;
+        userMessage.sendername = data.file.meta.sender;
+        userMessage.messageHead = "<div class='headMessageDiv' style='" + "color:" + socket.colorCode + "'>" + "<p class='nameMessageTag'>" + userMessage.sendername + "</p>" + "</div>";
+        userMessage.messageBody = 
+        "<div class='bodyMessageDiv'>" +
+             fileDiv +
         "</div>";
         userMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toUTCString() + "</div>";
         userMessage.room = new Room;

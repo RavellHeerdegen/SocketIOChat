@@ -7,8 +7,8 @@ var uploader = new SocketIOFileUpload(socket);
 uploader.listenOnInput(document.getElementById("file_input"));
 
 // DIVs START
-var chatDiv = $("#chatDiv").hide();
-var loginDiv = $("#loginDiv");
+var loginDiv = $("#loginDiv").show();
+var chatDiv = $("#chatDiv");
 var chatWindowDiv = $("#chatWindowDiv");
 // DIVs END
 
@@ -61,13 +61,14 @@ loginButton.click(() => {
     userId = socket.id;
     colorCode = "#" + ('00000' + (Math.random() * (1<<24) | 0).toString(16)).slice(-6);
     socket.emit("login", {username: username, userid: userId, color: colorCode});
+    
 });
 
 /**
  * Handles the logout of a user and puts him back to the login screen
  */
 logoutButton.click((callback) => {
-    socket.emit("disconnecting");
+    // socket.emit("disconnecting");
     callback = loadLogoutConfiguration;
     callback();
 });
@@ -236,8 +237,9 @@ function buildChatItem(data) {
  * Loads up the logout configuration of the DOM-Elements
  */
 function loadLogoutConfiguration() {
-    loginDiv.show();
-    chatDiv.hide();
+    // loginDiv.show();
+    // chatDiv.hide();
+    location.reload(true);
 }
 
 /**
@@ -308,6 +310,7 @@ uploader.addEventListener("start", (event) => {
     progressbar.css("width", "0%");
     event.file.meta.room = activeroom.roomname;
     event.file.meta.sender = username;
+    event.file.meta.type = event.file.type;
 });
 
 /**
