@@ -79,7 +79,7 @@ logoutButton.click((callback) => {
 messageSendButton.click(() => {
     // check length of message
     if (message.val().trim().length > 120) {
-      alert("Message too long (180 characters limited)");  
+      alert("Message too long (120 characters limited)");  
     } else if(message.val().trim().length === 0) {
         
     } else {
