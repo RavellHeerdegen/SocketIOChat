@@ -42,7 +42,7 @@ app.get("/", (req, res) => {
  */
 io.on("connection", (socket) => {
     var uploader = new siofu();
-    uploader.dir = "./public/uploads";
+    uploader.dir = "./public/uploads"; //Place where to put the uploaded files
     uploader.maxFileSize = 1024 * 24000; //24 MB maximum file-size
     uploader.listen(socket);
 
@@ -57,38 +57,38 @@ io.on("connection", (socket) => {
 
         fileDiv = "";
         // FIlemapping
-        if (data.file.meta.type.includes("image")){
-            fileDiv = "<div class='row'>" +
-                "<div style='display: flex; justify-content: center; padding-right: 0'>" + "<img src='" + data.file.pathName + "' style='width: 200px; height: 200px'></div>" +
-            "</div>" +
-            "<div class='row'>" +
-                "<div class='fileNameSpan' style='padding-left: 0'>" + data.file.name + "</div>" +
-                "<div style='padding-left: 0; width: 80px; margin-right: 16px;'>" + 
-                    "<a href='" + data.file.pathName + "' download='" + data.file.name + "' class='btn' style='width: 100%; background: #43a047'><i class='material-icons' style='color: lightgrey'>get_app</i></a>" +
+        if (data.file.meta.type.includes("image")) {
+            fileDiv = "<div class='row' style='margin-bottom: 6px; justify-content: flex-end'>" +
+                "<div style='display: flex; justify-content: center; padding-right: 16px'>" + "<img src='" + data.file.pathName + "' style='width: 200px; height: 200px'></div>" +
                 "</div>" +
-            "</div>";
+                "<div class='row'>" +
+                "<div class='fileNameSpan' style='padding-left: 0'>" + data.file.name + "</div>" +
+                "<div style='padding-left: 0; width: 80px; margin-right: 16px;'>" +
+                "<a href='" + data.file.pathName + "' download='" + data.file.name + "' class='btn' style='width: 100%; background: #43a047'><i class='material-icons' style='color: lightgrey'>get_app</i></a>" +
+                "</div>" +
+                "</div>";
         } else {
-            fileDiv = 
-            "<div class='row'>" +
+            fileDiv =
+                "<div class='row'>" +
                 "<div style='display: flex; justify-content: center; padding-right: 0; width: 60px'>" + "<i class='material-icons fileIncomeIcon'>input</i>" + "</div>" +
                 "<div class='fileNameSpan' style='padding-left: 0'>" + data.file.name + "</div>" +
-                "<div style='padding-left: 0; width: 80px; margin-right: 16px;'>" + 
-                    "<a href='" + data.file.pathName + "' download='" + data.file.name + "' class='btn' style='width: 100%; background: #43a047'><i class='material-icons' style='color: lightgrey'>get_app</i></a>" +
+                "<div style='padding-left: 0; width: 80px; margin-right: 16px;'>" +
+                "<a href='" + data.file.pathName + "' download='" + data.file.name + "' class='btn' style='width: 100%; background: #43a047'><i class='material-icons' style='color: lightgrey'>get_app</i></a>" +
                 "</div>" +
-            "</div>";
+                "</div>";
         }
 
         userMessage = new Message;
         userMessage.sendername = data.file.meta.sender;
         userMessage.messageHead = "<div class='headMessageDiv' style='" + "color:" + socket.colorCode + "'>" + "<p class='nameMessageTag'>" + userMessage.sendername + "</p>" + "</div>";
-        userMessage.messageBody = 
-        "<div class='bodyMessageDiv'>" +
-             fileDiv +
-        "</div>";
-        userMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toUTCString() + "</div>";
+        userMessage.messageBody =
+            "<div class='bodyMessageDiv'>" +
+            fileDiv +
+            "</div>";
+        userMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toLocaleString() + "</div>";
         userMessage.room = new Room;
         userMessage.room.roomname = data.file.meta.room;
-        
+
         io.in(data.file.meta.room).emit("file", {
             message: userMessage
         });
@@ -100,15 +100,15 @@ io.on("connection", (socket) => {
         errorMessage.sendername = socket.username;
         errorMessage.messageHead = "";
         errorMessage.messageBody = "<div class='text-danger bodyMessageDiv'>" + data.error + " (24 MB)" + "</div>";
-        errorMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toUTCString() + "</div>";
+        errorMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toLocaleString() + "</div>";
         errorMessage.room = new Room;
         errorMessage.room.roomname = data.file.meta.room;
 
-        socket.emit("file_upload_error", {message: errorMessage});
-        
+        socket.emit("file_upload_error", { message: errorMessage });
+
     });
     //Socket is the connection of the user
-    
+
     /**
      * Event triggered when receiving a login-emit of a client
      */
@@ -128,7 +128,7 @@ io.on("connection", (socket) => {
         room.roomname = ownUsername + otherUsername;
         room.sendername = ownUsername; //Fritz
         room.recipientname = otherUsername; //Ursula
-        
+
         socket.join(room.roomname);
         othersocket = users.find(f => f.username === otherUsername);
         othersocket.join(room.roomname);
@@ -179,10 +179,10 @@ function proofUsername(username) {
     // Proof of length
     if (username.length < 3 || username.length > 24) {
         return "Username is too short or too long (3 - 24 characters)";
-    // Proof of characters
-    } else if(!/^([a-z]|[A-Z])+.*/.test(username) || username === "undefined") {
+        // Proof of characters
+    } else if (!/^([a-z]|[A-Z])+.*/.test(username) || username === "undefined") {
         return "Username is invalid (Begin with letter)";
-    // Proof of existence
+        // Proof of existence
     } else {
         for (i = 0; i < users.length; i++) {
             if (users[i].username === username) {
@@ -201,7 +201,7 @@ function proofUsername(username) {
 function emitLoginEvent(socket, data) {
     usernameValid = proofUsername(data.username);
     if (usernameValid !== "valid") {
-        socket.emit('login_failed', {text: usernameValid}); //send fail-emit to sender socket
+        socket.emit('login_failed', { text: usernameValid }); //send fail-emit to sender socket
     } else {
         socket.username = data.username;
         socket.id = data.userid;
@@ -213,7 +213,7 @@ function emitLoginEvent(socket, data) {
         io.in("AllChat").emit("login_successful", { // emit to all users in allchat-room
             message: userConnectedMessage
         });
-    } 
+    }
 }
 
 /**
@@ -230,7 +230,7 @@ function buildLoginMessage(socket) {
     //build message head body and footer
     userConnectedMessage.messageHead = "";
     userConnectedMessage.messageBody = "<div class='bodyMessageDiv' style='color: #00ff6a'>" + userConnectedMessage.sendername + " has connected" + "</div>";
-    userConnectedMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toUTCString() + "</div>"; 
+    userConnectedMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toLocaleString() + "</div>";
     // ---
     userConnectedMessage.chatDOM = "<ul class='list-group' id='chatWindow'></ul>";
     userConnectedMessage.loggedInAsString = userConnectedMessage.sendername;
@@ -243,17 +243,20 @@ function buildLoginMessage(socket) {
  * @param {Socket} socket the disconnecting client socket
  */
 function emitLogoutEvent(socket) {
-    var index;
-    for (i = 0; i < users.length; i++) {
-        if (users[i].username === socket.username) {
-            index = i;
+    if (socket.username !== undefined && socket !== null) {
+
+        var index;
+        for (i = 0; i < users.length; i++) {
+            if (users[i].username === socket.username) {
+                index = i;
+            }
         }
+        users.splice(index, 1); // Delete disconnecting user from active users
+        userDisconnectedMessage = buildLogoutMessage(socket);
+        io.in("AllChat").emit("disconnecting", { // emit to all users in allchat-room
+            message: userDisconnectedMessage
+        });
     }
-    users.splice(index, 1); // Delete disconnecting user from active users
-    userDisconnectedMessage = buildLogoutMessage(socket);
-    io.in("AllChat").emit("disconnecting", { // emit to all users in allchat-room
-        message: userDisconnectedMessage
-    });
 }
 
 /**
@@ -265,7 +268,7 @@ function buildLogoutMessage(socket) {
     userDisconnectedMessage.sendername = socket.username;
     userDisconnectedMessage.messageHead = "";
     userDisconnectedMessage.messageBody = "<div class='text-danger bodyMessageDiv'>" + userDisconnectedMessage.sendername + " has disconnected" + "</div>";
-    userDisconnectedMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toUTCString() + "</div>";
+    userDisconnectedMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toLocaleString() + "</div>";
     userDisconnectedMessage.usersOnlineListDOM = buildOnlineUsersList();
     userDisconnectedMessage.room = new Room;
     userDisconnectedMessage.room.roomname = "AllChat";
@@ -283,7 +286,7 @@ function buildTextMessage(socket, message, room) {
     userMessage.sendername = socket.username;
     userMessage.messageHead = "<div class='headMessageDiv' style='" + "color:" + socket.colorCode + "'>" + "<p class='nameMessageTag'>" + userMessage.sendername + "</p>" + "</div>";
     userMessage.messageBody = "<div class='bodyMessageDiv'>" + message + "</div>";
-    userMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toUTCString() + "</div>";
+    userMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toLocaleString() + "</div>";
     userMessage.room = new Room;
     userMessage.room.roomname = room;
     return userMessage;
@@ -295,11 +298,11 @@ function buildTextMessage(socket, message, room) {
 function buildOnlineUsersList() {
     content = "";
     for (i = 0; i < users.length; i++) {
-        content = content + 
-            "<button type='button' class='btn btn-dark' id='" + 
-            users[i].username + "'" + " onclick='createPrivateRoom(" + users[i].username  + ")'" +
+        content = content +
+            "<button type='button' class='btn btn-dark' id='" +
+            users[i].username + "'" + " onclick='createPrivateRoom(" + users[i].username + ")'" +
             "style='" + "background:" + "linear-gradient(" + "110deg," + users[i].colorCode + " 20%," + "#37474f 20%" + ")" + "'>" +
-            users[i].username + 
+            users[i].username +
             "</button>";
     }
     return content;
@@ -315,12 +318,12 @@ function buildChatTabs(data) {
     rooms = data.rooms;
     rooms.forEach(room => {
         if (room.sendername === socket.username) {
-            chatTabDOM = "<button type='button' class='btn' style='background: #37474f' id='" + room.roomname + 
-            "' onclick='switchChatTabs(" + room.roomname  + ")'>" + room.recipientname + "</button>";
+            chatTabDOM = "<button type='button' class='btn' style='background: #37474f' id='" + room.roomname +
+                "' onclick='switchChatTabs(" + room.roomname + ")'>" + room.recipientname + "</button>";
             chatTabsDOMElements += chatTabDOM;
         } else {
-            chatTabDOM = "<button type='button' class='btn' style='background: #37474f' id='" + room.roomname + 
-            "' onclick='switchChatTabs(" + room.roomname  + ")'>" + room.sendername + "</button>";
+            chatTabDOM = "<button type='button' class='btn' style='background: #37474f' id='" + room.roomname +
+                "' onclick='switchChatTabs(" + room.roomname + ")'>" + room.sendername + "</button>";
             chatTabsDOMElements += chatTabDOM;
         }
     });

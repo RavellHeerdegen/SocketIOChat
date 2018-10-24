@@ -182,8 +182,8 @@ body, html {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    max-width: 360px;
-    min-width: 180px;
+    max-width: 240px;
+    min-width: 120px;
     margin-right: 6px;
 }
 
