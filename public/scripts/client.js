@@ -58,6 +58,7 @@ var rooms = [];
 loginButton.click(() => {
     username = usernameInput.val();
     username = username.replace(/ /g, "_"); //delete white spaces in names
+    username = username.replace(/[^\w\s]/gi, ''); //delete special characters
     userId = socket.id;
     colorCode = "#" + ('00000' + (Math.random() * (1 << 24) | 0).toString(16)).slice(-6);
     socket.emit("login", { username: username, userid: userId, color: colorCode });

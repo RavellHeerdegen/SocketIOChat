@@ -183,6 +183,8 @@ function proofUsername(username) {
     } else if (!/^([a-z]|[A-Z])+.*/.test(username) || username === "undefined") {
         return "Username is invalid (Begin with letter)";
         // Proof of existence
+    } else if (username.includes("<") || username.includes(">")){
+        return "Username is invalid (< and > aren't allowed)";
     } else {
         for (i = 0; i < users.length; i++) {
             if (users[i].username === username) {
@@ -285,7 +287,7 @@ function buildTextMessage(socket, message, room) {
     userMessage = new Message;
     userMessage.sendername = socket.username;
     userMessage.messageHead = "<div class='headMessageDiv' style='" + "color:" + socket.colorCode + "'>" + "<p class='nameMessageTag'>" + userMessage.sendername + "</p>" + "</div>";
-    userMessage.messageBody = "<div class='bodyMessageDiv'>" + message + "</div>";
+    userMessage.messageBody = "<div class='bodyMessageDiv'>" + message.replace(/(<([^>]+)>)/ig,"") + "</div>";
     userMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toLocaleString() + "</div>";
     userMessage.room = new Room;
     userMessage.room.roomname = room;
