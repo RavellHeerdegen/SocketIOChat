@@ -2,9 +2,6 @@
 
 // Starting up client side
 var socket = io.connect("http://localhost:3000");
-var uploader = new SocketIOFileUpload(socket);
-// Uploader listens for input events of a specific html-element
-uploader.listenOnInput(document.getElementById("file_input"));
 
 // DIVs START
 var loginDiv = $("#loginDiv").show();
@@ -36,6 +33,7 @@ $("#message").keyup(function (event) {
 });
 var progressbar = $("#progressbar").css("display", "none");
 var progressbarDiv = $("#progressbarDiv").hide();
+document.getElementById("file_input").addEventListener("change", fileUpload);
 // sendVariables END
 
 // chatVariables START
@@ -153,23 +151,6 @@ socket.on("update_chattabs", (data) => {
     $("#" + activeroom.roomname).css("background", "#90a4ae");
 });
 
-/**
- * Adds a download item to the chatcontext and serves the path to the file received
- */
-socket.on("file", (data) => {
-    buildChatItem(data.message);
-});
-
-/**
- * Adds an error message to the chat window
- */
-socket.on("file_upload_error", (data) => {
-    buildChatItem(data.message);
-    progressbar.css("width", "0%");
-    progressbar.css("display", "none");
-    progressbarDiv.hide();
-});
-
 /* Socket.on Events END */
 
 /* Functions START */
@@ -218,7 +199,10 @@ function buildChatItem(data) {
     }
     listItemDiv = listItemDiv + builtListItem + "</div>";
 
-    rooms.find(room => room.roomname === data.room.roomname).chatContent.push(listItemDiv);
+    room = rooms.find(room => room.roomname === data.room.roomname);
+    if (room) {
+        room.chatContent.push(listItemDiv);
+    }
     $("#chatWindow").empty();
     activeroom.chatContent.forEach(message => {
         $("#chatWindow").html($("#chatWindow").html() + message);
@@ -275,54 +259,106 @@ function createPrivateRoom(otheruser) {
     }
 }
 
-/* Functions END */
-
-/* Event Listeners START */
-
 /**
- * Listens to the error-event coming from the serverside if file upload fails
+ * Start upload for chosen files from the filepicker
+ * @param {File-Input Event} event the FileList-event to handle chosen files 
  */
-uploader.addEventListener("error", (event) => {
-    if (event.code === 1) {
-        errorMessage = new Message;
-        errorMessage.sendername = username;
-        errorMessage.messageHead = "";
-        errorMessage.messageBody = "<div class='text-danger bodyMessageDiv'>" + "File is too big (max 24 MB)" + "</div>";
-        errorMessage.messageFooter = "<div class='footerMessageDiv'>" + new Date().toUTCString() + "</div>";
-        errorMessage.room = new Room;
-        errorMessage.room.roomname = activeroom.roomname;
-        buildChatItem(errorMessage);
+function fileUpload(event) {
+    file = event.target.files[0];
+    if (file) {
+        filestream = ss.createStream();
+        ss(socket).emit('file_upload', filestream, {
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            room: activeroom,
+            sender: username,
+            colorcode: colorCode
+        });
+
+        blobStream = ss.createBlobReadStream(file); // for chunking and bidirectional file transfer
+
+        // Update progress bar
+        progressbarDiv.show();
+        progressbar.css("display", "block");
+        size = 0;
+
+        blobStream.on("data", (chunk) => {
+            size += chunk.length;
+            progressbar.css("width", size / file.size * 100 + "%");
+        });
+        blobStream.pipe(filestream);
     }
-});
+}
 
 /**
- * Listens to the start-event when a client inputs a file for upload
+ * Receiving a file upload event and printing the message to the chat-Window
  */
-uploader.addEventListener("start", (event) => {
-    progressbar.css("width", "0%");
-    event.file.meta.room = activeroom.roomname;
-    event.file.meta.sender = username;
-    event.file.meta.type = event.file.type;
+ss(socket).on("file_upload", (stream, data) => {
+    let binaryData = [];
+
+    stream.on("error", (error) => {
+        console.log(error);
+        if (data.sender === username) {
+            progressbar.css("width", "0%");
+            progressbar.css("display", "none");
+            progressbarDiv.hide();
+        }
+    })
+
+    stream.on("data", (chunk) => {
+        binaryData.push.apply(binaryData, chunk); //Put chunks together
+    });
+
+    stream.on("end", () => {
+        let blob = new Blob([new Uint8Array(binaryData)]); //Blob is an object piece of the file
+        let fileUrl = URL.createObjectURL(blob);
+
+        fileDiv = "";
+        // FIlemapping
+        if (data.type.includes("image")) {
+            fileDiv = "<div class='row' style='margin-bottom: 6px; justify-content: flex-end'>" +
+                "<div style='display: flex; justify-content: center; padding-right: 16px'>" + "<img src='" + fileUrl + "' style='width: 200px; height: 200px'></div>" +
+                "</div>" +
+                "<div class='row'>" +
+                "<div class='fileNameSpan' style='padding-left: 0'>" + data.name + "</div>" +
+                "<div style='padding-left: 0; width: 80px; margin-right: 16px;'>" +
+                "<a href='" + fileUrl + "' download='" + data.name + "' class='btn' style='width: 100%; background: #43a047'><i class='material-icons' style='color: lightgrey'>get_app</i></a>" +
+                "</div>" +
+                "</div>";
+        } else {
+            fileDiv =
+                "<div class='row'>" +
+                "<div style='display: flex; justify-content: center; padding-right: 0; width: 60px'>" + "<i class='material-icons fileIncomeIcon'>input</i>" + "</div>" +
+                "<div class='fileNameSpan' style='padding-left: 0'>" + data.name + "</div>" +
+                "<div style='padding-left: 0; width: 80px; margin-right: 16px;'>" +
+                "<a href='" + fileUrl + "' download='" + data.name + "' class='btn' style='width: 100%; background: #43a047'><i class='material-icons' style='color: lightgrey'>get_app</i></a>" +
+                "</div>" +
+                "</div>";
+        }
+
+        userMessage = new Message;
+        userMessage.sendername = data.sender;
+        userMessage.messageHead = "<div class='headMessageDiv' style='" + "color:" + data.colorCode + "'>" + "<p class='nameMessageTag'>" + userMessage.sendername + "</p>" + "</div>";
+        userMessage.messageBody =
+            "<div class='bodyMessageDiv'>" +
+            fileDiv +
+            "</div>";
+        userMessage.messageFooter = "<div class='footerMessageDiv'>" + data.timeStamp + "</div>";
+        userMessage.room = new Room;
+        userMessage.room.roomname = data.room.roomname;
+
+        buildChatItem(userMessage);
+
+        if (data.sender === username) {
+            progressbar.css("width", "0%");
+            progressbar.css("display", "none");
+            progressbarDiv.hide();
+        }
+    });
 });
 
-/**
- * Listens to the progress-event if a file upload is processing
- */
-uploader.addEventListener("progress", (event) => {
-    progressbarDiv.show();
-    progressbar.css("display", "block");
-    progressbar.css("width", event.bytesLoaded / event.file.size * 100 + "%");
-})
-
-/**
- * Listens to the complete event if a file upload succeeded
- */
-uploader.addEventListener("complete", (event) => {
-    progressbar.css("display", "none");
-    progressbarDiv.hide();
-});
-
-/* Event Listeners END */
+/* Functions END */
 
 /* Object models START */
 
