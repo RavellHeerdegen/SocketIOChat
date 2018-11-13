@@ -1,9 +1,11 @@
 /* JAN POHL 761383, RAVELL HEERDEGEN 761330 */
 
+
 /* Initialisation of all modules and prototypes START */
 const express = require("express"); //Get module express
 const app = express(); // Our app is an express application
 const ss = require('socket.io-stream'); // for streaming files
+const request = require("request");
 
 app.use(express.static(__dirname + "/public")); //Default path for assets is public/...
 app.use('/js', express.static(__dirname + '/node_modules/bootstrap/dist/js')); // redirect bootstrap JS
@@ -15,10 +17,10 @@ app.use('/js', express.static(__dirname + '/node_modules/socket.io-stream')); //
 // Server variables START
 var users = []; // Sockets
 // Server variables END
-
+let port = process.env.PORT || 3000;
 /* Start Server */
-server = app.listen(3000, () => {
-    console.log('Server running on port 3000');
+server = app.listen(port, () => {
+    console.log('Server running on port' + port);
 });
 const io = require("socket.io")(server); // Socket is attached to server
 
@@ -255,9 +257,43 @@ function buildLogoutMessage(socket) {
 function buildTextMessage(socket, message, room) {
     date = new Date();
 
+    textobject = {
+        "texts": ["Hello you", "whats up"]
+    };
+    let moodresult;
+    // fetch("/tone", {
+    //     method: "POST",
+    //     headers: {
+    //         'Accept': 'application/json',
+    //         'Content-Type': 'application/json',
+    //         'mode': 'cors'
+    //     },
+    //     body: JSON.stringify({
+    //        texts: [message, ""]
+    //     })
+    // })
+    // .then((response) => {
+    //     var contentType = response.headers.get("content-type");
+    //     if(contentType && contentType.includes("application/json")) {
+    //        return response.json();
+    //     }
+    //     throw new TypeError("Oops, we haven't got JSON!");
+    // })
+    // .then((response) => { 
+    //     console.log("response:" +  JSON.stringify(response));
+    //     if (response.mood) {
+    //       moodresult = response.mood;
+    //     }
+    // });
+    request("/tone", function(error, response, body) {
+        if (response && response.statusCode === "200") {
+            moodresult = body;
+        }
+    });
+
     userMessage = new Message;
     userMessage.sendername = socket.username;
-    userMessage.messageHead = "<div class='headMessageDiv' style='" + "color:" + socket.colorCode + "'>" + "<p class='nameMessageTag'>" + userMessage.sendername + "</p>" + "</div>";
+    userMessage.messageHead = "<div class='headMessageDiv' style='" + "color:" + socket.colorCode + "'>" + "<p class='nameMessageTag'>" + userMessage.sendername + "(" + moodresult + ")" + "</p>" + "</div>";
     userMessage.messageBody = "<div class='bodyMessageDiv'>" + message.replace(/(<([^>]+)>)/ig, "") + "</div>";
     userMessage.messageFooter = "<div class='footerMessageDiv'>" + date.getDay() + "." + date.getMonth() + 
         "." + date.getFullYear() + " " + date.getHours() + 

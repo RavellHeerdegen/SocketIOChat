@@ -1,0 +1,5 @@
+---
+applications:
+- name: super-chat-bros
+  memory: 512M
+  instances: 1

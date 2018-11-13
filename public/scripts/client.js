@@ -1,7 +1,7 @@
 /* JAN POHL 761383, RAVELL HEERDEGEN 761330 */
 
 // Starting up client side
-var socket = io.connect("http://localhost:3000");
+var socket = io.connect("http://super-chat-bros.eu-de.mybluemix.net/");
 
 // DIVs START
 var loginDiv = $("#loginDiv").show();
