@@ -5,7 +5,7 @@
 const express = require("express"); //Get module express
 const app = express(); // Our app is an express application
 const ss = require('socket.io-stream'); // for streaming files
-const request = require("request");
+const http = require("https");
 
 app.use(express.static(__dirname + "/public")); //Default path for assets is public/...
 app.use('/js', express.static(__dirname + '/node_modules/bootstrap/dist/js')); // redirect bootstrap JS
@@ -51,7 +51,7 @@ io.on("connection", (socket) => {
     ss(socket).on('file_upload', (stream, data) => {
         users.forEach(user => {
             rooms = Object.keys(socket.rooms);
-            if(rooms.find(room => room === data.room.roomname)) {
+            if (rooms.find(room => room === data.room.roomname)) {
                 clientstream = ss.createStream();
 
                 date = new Date();
@@ -197,8 +197,8 @@ function buildLoginMessage(socket) {
     //build message head body and footer
     userConnectedMessage.messageHead = "";
     userConnectedMessage.messageBody = "<div class='bodyMessageDiv' style='color: #00ff6a'>" + userConnectedMessage.sendername + " has connected" + "</div>";
-    userConnectedMessage.messageFooter = "<div class='footerMessageDiv'>" + date.getDay() + 
-        "." + date.getMonth() + "." + date.getFullYear() + " " + date.getHours() + 
+    userConnectedMessage.messageFooter = "<div class='footerMessageDiv'>" + date.getDay() +
+        "." + date.getMonth() + "." + date.getFullYear() + " " + date.getHours() +
         ":" + date.getMinutes() + "</div>";
     // ---
     userConnectedMessage.chatDOM = "<ul class='list-group' id='chatWindow'></ul>";
@@ -239,8 +239,8 @@ function buildLogoutMessage(socket) {
     userDisconnectedMessage.sendername = socket.username;
     userDisconnectedMessage.messageHead = "";
     userDisconnectedMessage.messageBody = "<div class='text-danger bodyMessageDiv'>" + userDisconnectedMessage.sendername + " has disconnected" + "</div>";
-    userDisconnectedMessage.messageFooter = "<div class='footerMessageDiv'>" + date.getDay() + "." + date.getMonth() + 
-        "." + date.getFullYear() + " " + date.getHours() + 
+    userDisconnectedMessage.messageFooter = "<div class='footerMessageDiv'>" + date.getDay() + "." + date.getMonth() +
+        "." + date.getFullYear() + " " + date.getHours() +
         ":" + date.getMinutes() + "</div>";
     userDisconnectedMessage.usersOnlineListDOM = buildOnlineUsersList();
     userDisconnectedMessage.room = new Room;
@@ -258,46 +258,44 @@ function buildTextMessage(socket, message, room) {
     date = new Date();
 
     textobject = {
-        "texts": ["Hello you", "whats up"]
+        "texts": [message, ""]
     };
     let moodresult;
-    // fetch("/tone", {
-    //     method: "POST",
-    //     headers: {
-    //         'Accept': 'application/json',
-    //         'Content-Type': 'application/json',
-    //         'mode': 'cors'
-    //     },
-    //     body: JSON.stringify({
-    //        texts: [message, ""]
-    //     })
-    // })
-    // .then((response) => {
-    //     var contentType = response.headers.get("content-type");
-    //     if(contentType && contentType.includes("application/json")) {
-    //        return response.json();
-    //     }
-    //     throw new TypeError("Oops, we haven't got JSON!");
-    // })
-    // .then((response) => { 
-    //     console.log("response:" +  JSON.stringify(response));
-    //     if (response.mood) {
-    //       moodresult = response.mood;
-    //     }
-    // });
-    request.post({url:"https://clever-banach.eu-de.mybluemix.net/tone", formData: textobject}, function(error, response, body) {
-        if (err) {
-            return console.error('upload failed:', err);
+
+    options = {
+        "method": "POST",
+        "hostname": "clever-banach.eu-de.mybluemix.net",
+        "path": [
+            "tone"
+        ],
+        "headers": {
+            "Content-Type": "application/json",
+            "cache-control": "no-cache"
         }
-        moodresult = body;
-    });
+    }
+
+    var req = http.request(options, (res) => {
+        var chunks = [];
+      
+        res.on("data", function (chunk) {
+          chunks.push(chunk);
+        });
+      
+        res.on("end", function () {
+          var body = Buffer.concat(chunks);
+          moodresult = body.mood;
+        });
+      });
+      
+      req.write(JSON.stringify({ texts: [ message, "" ] }));
+      req.end();
 
     userMessage = new Message;
     userMessage.sendername = socket.username;
-    userMessage.messageHead = "<div class='headMessageDiv' style='" + "color:" + socket.colorCode + "'>" + "<p class='nameMessageTag'>" + userMessage.sendername + "(" + moodresult.mood + ")" + "</p>" + "</div>";
+    userMessage.messageHead = "<div class='headMessageDiv' style='" + "color:" + socket.colorCode + "'>" + "<p class='nameMessageTag'>" + userMessage.sendername + "(" + moodresult + ")" + "</p>" + "</div>";
     userMessage.messageBody = "<div class='bodyMessageDiv'>" + message.replace(/(<([^>]+)>)/ig, "") + "</div>";
-    userMessage.messageFooter = "<div class='footerMessageDiv'>" + date.getDay() + "." + date.getMonth() + 
-        "." + date.getFullYear() + " " + date.getHours() + 
+    userMessage.messageFooter = "<div class='footerMessageDiv'>" + date.getDay() + "." + date.getMonth() +
+        "." + date.getFullYear() + " " + date.getHours() +
         ":" + date.getMinutes() + "</div>";
     userMessage.room = new Room;
     userMessage.room.roomname = room;
