@@ -113,9 +113,11 @@ io.on("connection", (socket) => {
     socket.on("send", (data) => {
         message = data.message;
         room = data.room;
-        userMessage = buildTextMessage(socket, message, room);
-        io.in(room).emit("send", {
-            message: userMessage
+        buildTextMessage(socket, message, room).then((result) => {
+            userMessage = result;
+            io.in(room).emit("send", {
+                message: userMessage
+            });
         });
     });
 
@@ -262,44 +264,54 @@ function buildTextMessage(socket, message, room) {
     };
     let moodresult;
 
-    options = {
-        "method": "POST",
-        "hostname": "clever-banach.eu-de.mybluemix.net",
-        "path": [
-            "tone"
-        ],
-        "headers": {
-            "Content-Type": "application/json",
-            "cache-control": "no-cache"
+    var promiseresult = new Promise((resolve, reject) => {
+
+        options = {
+            "method": "POST",
+            "hostname": "clever-banach.eu-de.mybluemix.net",
+            "path": [
+                "tone"
+            ],
+            "headers": {
+                "Content-Type": "application/json",
+                "cache-control": "no-cache"
+            }
         }
-    }
 
-    var req = http.request(options, (res) => {
-        var chunks = [];
-      
-        res.on("data", function (chunk) {
-          chunks.push(chunk);
-        });
-      
-        res.on("end", function () {
-          var body = Buffer.concat(chunks);
-          moodresult = body.mood;
-        });
-      });
-      
-      req.write(JSON.stringify({ texts: [ message, "" ] }));
-      req.end();
+        var req = http.request(options, (res) => {
+            var chunks = [];
 
-    userMessage = new Message;
-    userMessage.sendername = socket.username;
-    userMessage.messageHead = "<div class='headMessageDiv' style='" + "color:" + socket.colorCode + "'>" + "<p class='nameMessageTag'>" + userMessage.sendername + "(" + moodresult + ")" + "</p>" + "</div>";
-    userMessage.messageBody = "<div class='bodyMessageDiv'>" + message.replace(/(<([^>]+)>)/ig, "") + "</div>";
-    userMessage.messageFooter = "<div class='footerMessageDiv'>" + date.getDay() + "." + date.getMonth() +
-        "." + date.getFullYear() + " " + date.getHours() +
-        ":" + date.getMinutes() + "</div>";
-    userMessage.room = new Room;
-    userMessage.room.roomname = room;
-    return userMessage;
+            res.on("data", (chunk) => {
+                chunks.push(chunk);
+            });
+
+            res.on("end", () => {
+                var body = Buffer.concat(chunks);
+                let jsonmood = body.toString();
+                jsonmood = JSON.parse(jsonmood);
+                console.log(jsonmood);
+                resolve(jsonmood.mood);
+            });
+        });
+
+        req.write(JSON.stringify({ texts: [message, ""] }));
+        req.end();
+    });
+
+    return promiseresult.then((result) => {
+        moodresult = result;
+        userMessage = new Message;
+        userMessage.sendername = socket.username;
+        userMessage.messageHead = "<div class='headMessageDiv' style='" + "color:" + socket.colorCode + "'>" + "<p class='nameMessageTag'>" + userMessage.sendername + "(" + moodresult + ")" + "</p>" + "</div>";
+        userMessage.messageBody = "<div class='bodyMessageDiv'>" + message.replace(/(<([^>]+)>)/ig, "") + "</div>";
+        userMessage.messageFooter = "<div class='footerMessageDiv'>" + date.getDay() + "." + date.getMonth() +
+            "." + date.getFullYear() + " " + date.getHours() +
+            ":" + date.getMinutes() + "</div>";
+        userMessage.room = new Room;
+        userMessage.room.roomname = room;
+        return userMessage;
+    });
+
 }
 
 /**
