@@ -289,7 +289,6 @@ function buildTextMessage(socket, message, room) {
                 var body = Buffer.concat(chunks);
                 let jsonmood = body.toString();
                 jsonmood = JSON.parse(jsonmood);
-                console.log(jsonmood);
                 resolve(jsonmood.mood);
             });
         });
@@ -302,7 +301,7 @@ function buildTextMessage(socket, message, room) {
         moodresult = result;
         userMessage = new Message;
         userMessage.sendername = socket.username;
-        userMessage.messageHead = "<div class='headMessageDiv' style='" + "color:" + socket.colorCode + "'>" + "<p class='nameMessageTag'>" + userMessage.sendername + "(" + moodresult + ")" + "</p>" + "</div>";
+        userMessage.messageHead = "<div class='headMessageDiv' style='" + "color:" + socket.colorCode + "'>" + "<p class='nameMessageTag'>" + userMessage.sendername + " (" + moodresult + ")" + "</p>" + "</div>";
         userMessage.messageBody = "<div class='bodyMessageDiv'>" + message.replace(/(<([^>]+)>)/ig, "") + "</div>";
         userMessage.messageFooter = "<div class='footerMessageDiv'>" + date.getDay() + "." + date.getMonth() +
             "." + date.getFullYear() + " " + date.getHours() +
