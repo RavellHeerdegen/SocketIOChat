@@ -50,6 +50,7 @@ app.get('/socket.io-stream.js', (req, res, next) => {
 io.on("connection", (socket) => {
 
     ss(socket).on('file_upload', (stream, data) => {
+
         users.forEach(user => {
             rooms = Object.keys(socket.rooms);
             if (rooms.find(room => room === data.room.roomname)) {
@@ -69,6 +70,10 @@ io.on("connection", (socket) => {
                 stream.pipe(clientstream);
             }
         });
+    });
+
+    ss(socket).on("profile-pic", (stream, data) => {
+        // ... 
     });
 
     //Socket is the connection of the user
@@ -239,9 +244,9 @@ function emitRegisterEvent(socket, data, callback) {
                     } else {
                         databasemodule.register(data.username, data.password).then((success) => {
                             if (success) {
-                                socket.emit("register_successful", { text: "Registrierung erfolgreich. Loggen Sie sich mit Ihren Daten ein"})
+                                socket.emit("register_successful", { text: "Registrierung erfolgreich. Loggen Sie sich mit Ihren Daten ein" })
                             } else {
-                                socket.emit("register_failed", { text: "Registrierung fehlgeschlagen"});
+                                socket.emit("register_failed", { text: "Registrierung fehlgeschlagen" });
                             }
                         });
                     }

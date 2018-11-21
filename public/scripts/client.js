@@ -17,13 +17,25 @@ $("#usernameInput").keyup(function (event) {
         $("#loginButton").click();
     }
 });
-var registerButton = $("#registerButton");
 var passwordInput = $("#passwordInput");
 $("#passwordInput").keyup(function (event) {
     if (event.keyCode === 13) {
         $("#loginButton").click();
     }
 });
+
+var registerButtonDialog = $("#registerButtonDialog");
+$('#registerProfilePicture').change(function (e) {
+    var file = e.target.files[0];
+    var reader = new FileReader();
+    reader.addEventListener('load', console.log(file));
+    reader.readAsText(file);
+    console.log(file instanceof Blob);
+    let blob = new Blob([new Uint8Array(file)]); //Blob is an object piece of the file
+    console.log(URL.createObjectURL(blob));
+});
+var usernameInputDialog = $("#usernameInputDialog");
+var passwordInputDialog = $("#passwordInputDialog");
 // loginVariables END
 
 // logoutVariables START
@@ -72,17 +84,15 @@ loginButton.click(() => {
     socket.emit("login", { username: username, password: password, userid: userId, color: colorCode });
 });
 
-/**
- * Handles the registration of a user and registers the user on the server
- */
-registerButton.click(() => {
-    username = usernameInput.val();
-    password = passwordInput.val();
+registerButtonDialog.click(() => {
+    username = usernameInputDialog.val();
+    password = passwordInputDialog.val();
     username = username.replace(/ /g, "_"); //delete white spaces in names
     username = username.replace(/[^\w\s]/gi, ''); //delete special characters
     password = password.replace(/ /g, "_"); //delete white spaces in names
     password = password.replace(/[^\w\s]/gi, ''); //delete special characters
-    socket.emit("register", {username: username, password: password});
+    socket.emit("register", { username: username, password: password });
+
 });
 
 /**
@@ -145,8 +155,9 @@ socket.on("login_successful", (data, callback) => {
  * Handles the register-successful event and gives feedback to the requesting client
  */
 socket.on("register_successful", (data) => {
-    $("#responseLabel").css("color", "green");
-    $("#responseLabel").html(data.text);
+    console.log("Registrierung funzt");
+    $("#responseDialogLabel").css("color", "green");
+    $("#responseDialogLabel").html(data.text);
 });
 
 /**
@@ -161,8 +172,8 @@ socket.on("login_failed", (data) => {
  * Handles the register_failed event and gives feedback to the requesting client why the registration failed
  */
 socket.on("register_failed", (data) => {
-    $("#responseLabel").css("color", "red");
-    $("#responseLabel").html(data.text);
+    $("#responseDialogLabel").css("color", "red");
+    $("#responseDialogLabel").html(data.text);
 });
 
 /**

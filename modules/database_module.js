@@ -4,20 +4,20 @@ const mysql = require('mysql');
 let connection = mysql.createConnection('mysql://admin:EKAVNZNWEVTYOGSX@sl-eu-fra-2-portal.5.dblayer.com:18372/compose');
 
 // TABLE QUERIES
-let getallusersquery = "select * from users";
-let deleterowsquery = "delete from users;";
-let addcolumnquery = "alter table users ADD profilepictureID VARCHAR(100);";
-return new Promise((resolve, reject) => {
-    connection.query(getallusersquery, (err, rows) => {
-        if (err || !rows[0]) {
-            resolve(false);
-        } else {
-            if (rows[0].username) {
-                resolve(true);
-            }
-        }
-    });
-});
+// let getallusersquery = "select * from users";
+// let deleterowsquery = "delete from users;";
+// let addcolumnquery = "alter table users ADD profilepictureID VARCHAR(100);";
+// return new Promise((resolve, reject) => {
+//     connection.query(getallusersquery, (err, rows) => {
+//         if (err || !rows[0]) {
+//             resolve(false);
+//         } else {
+//             if (rows[0].username) {
+//                 resolve(true);
+//             }
+//         }
+//     });
+// });
 
 // QUERIES END
 

@@ -317,6 +317,12 @@ body, html {
     height: 36px;
 }
 
+#registerFailedLabelDiv {
+    display: flex;
+    align-items: center;
+    height: 36px;
+}
+
 #actionButtonsDiv {
     display: flex;
     justify-content: flex-start;
