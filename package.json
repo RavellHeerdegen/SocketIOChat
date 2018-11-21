@@ -13,6 +13,7 @@
     "express": "^4.16.3",
     "jquery": "^3.3.1",
     "material-design-icons": "^3.0.1",
+    "mysql": "^2.16.0",
     "request": "^2.88.0",
     "socket.io": "^2.1.1",
     "socket.io-stream": "^0.9.1"

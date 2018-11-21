@@ -19,17 +19,25 @@
             <img src="../assets/scbw.png">
         </div>
         <div class="col-sm-12" id="logoTextDiv">
-            <h3>Login with a username</h3>
+            <h3>Chat with your Bros</h3>
             <span>(3 to 24 characters)</span>
         </div>
         <div class="col-sm-12" id="inputFormDiv">
             <div class="form" action="" id="loginForm">
                 <div class="form-group" id="loginFormGroup">
-                    <input type="text" placeholder="Your username" class="form-control" id="usernameInput" autofocus>
-                    <label class="text-danger" id="loginFailedLabel"></label>
+                    <input type="text" placeholder="Username" class="form-control" id="usernameInput" autofocus class="formField">
+                    <input type="password" placeholder="Password" class="form-control" id="passwordInput" class="formField">
+                    <div id="loginFailedLabelDiv">
+                        <label id="responseLabel"></label>
+                    </div>
                 </div>
-                <div id="loginButtonDiv">
-                    <button class="btn btn-primary" type="button" id="loginButton">Chat with your Bros</button>
+                <div id="actionButtonsDiv">
+                    <div class="col-sm-6" style="display: flex; justify-content: flex-start; align-items: center; padding-left: 0">
+                        <button class="btn btn-primary" type="button" id="loginButton">Login</button>
+                    </div>
+                    <div class="col-sm-6" style="display: flex; justify-content: flex-end; align-items: center; padding-right: 0">
+                        <button class="btn btn-warning" type="button" id="registerButton">Register</button>
+                    </div>
                 </div>
             </div>
         </div>

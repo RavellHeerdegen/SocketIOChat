@@ -267,6 +267,10 @@ body, html {
     justify-content: center;
 }
 
+#loginFormGroup {
+    margin-bottom: 0px;
+}
+
 #logoDiv {
     display: flex;
     justify-content: center;
@@ -301,13 +305,32 @@ body, html {
     color: lightgray;
 }
 
-#loginButtonDiv {
+#passwordInput {
+    margin-top: 12px;
+    background: #212121;
+    color: lightgray;
+}
+
+#loginFailedLabelDiv {
     display: flex;
-    justify-content: center;
+    align-items: center;
+    height: 36px;
+}
+
+#actionButtonsDiv {
+    display: flex;
+    justify-content: flex-start;
 }
 
 #loginButton {
-    min-height: 60px;
+    min-width: 125px;
+    min-height: 48px;
+}
+
+#registerButton {
+    margin-left: 12px;
+    min-width: 125px;
+    min-height: 48px;
 }
 
 

@@ -5,7 +5,8 @@
 const express = require("express"); //Get module express
 const app = express(); // Our app is an express application
 const ss = require('socket.io-stream'); // for streaming files
-const http = require("https");
+const moodmodule = require("./modules/mood_module");
+const databasemodule = require("./modules/database_module");
 
 app.use(express.static(__dirname + "/public")); //Default path for assets is public/...
 app.use('/js', express.static(__dirname + '/node_modules/bootstrap/dist/js')); // redirect bootstrap JS
@@ -81,6 +82,14 @@ io.on("connection", (socket) => {
     });
 
     /**
+     * Event triggered when receiving a new registration event of client
+     */
+    socket.on("register", (data, callback) => {
+        callback = emitRegisterEvent;
+        callback(socket, data);
+    });
+
+    /**
      * Creates a private room for two chat partners and emits it to the client for visual feedback
      */
     socket.on("create_private_room", (data) => {
@@ -139,25 +148,38 @@ io.on("connection", (socket) => {
  * Proofes if the given username is already taken by another loggedin user
  * @param {string} the username of the connecting client
  */
-function proofUsername(username) {
-    username = username.trim();
-    // Proof of length
-    if (username.length < 3 || username.length > 24) {
-        return "Username is too short or too long (3 - 24 characters)";
-        // Proof of characters
-    } else if (!/^([a-z]|[A-Z])+.*/.test(username) || username === "undefined") {
-        return "Username is invalid (Begin with letter)";
-        // Proof of existence
-    } else if (username.includes("<") || username.includes(">")) {
-        return "Username is invalid (< and > aren't allowed)";
+function proofCredential(credential, token) {
+    credential = credential.trim();
+    indicator = "";
+    credentialminlength = 0;
+    credentialmaxlength = 24;
+    if (token == "U") {
+        indicator = "Username";
+        credentialminlength = 3;
     } else {
-        for (i = 0; i < users.length; i++) {
-            if (users[i].username === username) {
-                return "Username already taken";
-            }
-        }
-        return "valid";
+        indicator = "Password";
+        credentialminlength = 8;
     }
+    // Proof of length
+    if (credential.length < credentialminlength || credential.length > credentialmaxlength) {
+        return indicator + " is too short or too long (" + credentialminlength + " - 24 characters)";
+    }
+    if (token == "U") {
+        if (!/^([a-z]|[A-Z])+.*/.test(credential) || credential === "undefined") {
+            return indicator + " is invalid (Begin with letter)";
+        }
+    }
+    if (credential.includes("<") || credential.includes(">")) {
+        return indicator + " is invalid (< and > aren't allowed)";
+    }
+    if (token == "P") {
+        if (/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+/.test(credential)) {
+            return "valid";
+        } else {
+            return indicator + " does not contain big character, number and small character";
+        }
+    }
+    return "valid";
 }
 
 /**
@@ -166,20 +188,78 @@ function proofUsername(username) {
  * @param {any} data the login data like username and socket.id
  */
 function emitLoginEvent(socket, data) {
-    usernameValid = proofUsername(data.username);
-    if (usernameValid !== "valid") {
-        socket.emit('login_failed', { text: usernameValid }); //send fail-emit to sender socket
-    } else {
-        socket.username = data.username;
-        socket.id = data.userid;
-        socket.colorCode = data.color;
-        socket.join("AllChat");
-        users.push(socket); // Add client to active users
-        // Build the message object
-        userConnectedMessage = buildLoginMessage(socket);
-        io.in("AllChat").emit("login_successful", { // emit to all users in allchat-room
-            message: userConnectedMessage
-        });
+    if (data.username.length == 0 || data.password.length == 0) {
+        socket.emit("login_failed", { text: "Missing credentials, please type a name and password" });
+        return;
+    }
+    usernameValid = proofCredential(data.username, "U");
+    passwordValid = proofCredential(data.password, "P");
+    if (usernameValid != "valid" && passwordValid == "valid") {
+        socket.emit("login_failed", { text: usernameValid });
+        return;
+    }
+    if (usernameValid == "valid" && passwordValid != "valid") {
+        socket.emit("login_failed", { text: passwordValid });
+        return;
+    }
+    if (usernameValid != "valid" && passwordValid != "valid") {
+        socket.emit("login_failed", { text: "Username and password are incorrect" });
+        return;
+    }
+    databasemodule.login(data.username, data.password).then((success) => {
+        if (success) {
+            console.log("Eingeloggt");
+            socket.username = data.username;
+            socket.id = data.userid;
+            socket.colorCode = data.color;
+            socket.join("AllChat");
+            users.push(socket); // Add client to active users
+            // Build the message object
+            userConnectedMessage = buildLoginMessage(socket);
+            io.in("AllChat").emit("login_successful", { // emit to all users in allchat-room
+                message: userConnectedMessage
+            });
+        } else {
+            socket.emit("login_failed", { text: "User not registered" });
+        }
+    });
+}
+
+function emitRegisterEvent(socket, data, callback) {
+    try {
+        if (data.username.length == 0 || data.password.length == 0) {
+            socket.emit("register_failed", { text: "Missing credentials, please type a name and password" });
+        } else {
+            usernameValid = proofCredential(data.username, "U");
+            passwordValid = proofCredential(data.password, "P");
+            if (usernameValid == "valid" && passwordValid == "valid") {
+                databasemodule.proofUsernameTaken(data.username).then((taken) => {
+                    if (taken) {
+                        socket.emit("register_failed", { text: "Username already taken" });
+                    } else {
+                        databasemodule.register(data.username, data.password).then((success) => {
+                            if (success) {
+                                socket.emit("register_successful", { text: "Registrierung erfolgreich. Loggen Sie sich mit Ihren Daten ein"})
+                            } else {
+                                socket.emit("register_failed", { text: "Registrierung fehlgeschlagen"});
+                            }
+                        });
+                    }
+                });
+            } else {
+                if (usernameValid != "valid" && passwordValid == "valid") {
+                    socket.emit("register_failed", { text: usernameValid });
+                }
+                if (usernameValid == "valid" && passwordValid != "valid") {
+                    socket.emit("register_failed", { text: passwordValid });
+                }
+                if (usernameValid != "valid" && passwordValid != "valid") {
+                    socket.emit("register_failed", { text: "Username and password are incorrect" });
+                }
+            }
+        }
+    } catch (err) {
+        console.log(err);
     }
 }
 
@@ -259,43 +339,9 @@ function buildLogoutMessage(socket) {
 function buildTextMessage(socket, message, room) {
     date = new Date();
 
-    textobject = {
-        "texts": [message, ""]
-    };
     let moodresult;
 
-    var promiseresult = new Promise((resolve, reject) => {
-
-        options = {
-            "method": "POST",
-            "hostname": "clever-banach.eu-de.mybluemix.net",
-            "path": [
-                "tone"
-            ],
-            "headers": {
-                "Content-Type": "application/json",
-                "cache-control": "no-cache"
-            }
-        }
-
-        var req = http.request(options, (res) => {
-            var chunks = [];
-
-            res.on("data", (chunk) => {
-                chunks.push(chunk);
-            });
-
-            res.on("end", () => {
-                var body = Buffer.concat(chunks);
-                let jsonmood = body.toString();
-                jsonmood = JSON.parse(jsonmood);
-                resolve(jsonmood.mood);
-            });
-        });
-
-        req.write(JSON.stringify({ texts: [message, ""] }));
-        req.end();
-    });
+    var promiseresult = moodmodule.getMood(message);
 
     return promiseresult.then((result) => {
         moodresult = result;

@@ -17,6 +17,13 @@ $("#usernameInput").keyup(function (event) {
         $("#loginButton").click();
     }
 });
+var registerButton = $("#registerButton");
+var passwordInput = $("#passwordInput");
+$("#passwordInput").keyup(function (event) {
+    if (event.keyCode === 13) {
+        $("#loginButton").click();
+    }
+});
 // loginVariables END
 
 // logoutVariables START
@@ -51,16 +58,31 @@ var rooms = [];
 /* Click Events START */
 
 /**
- * Handles the login of a user and registers the user on the server
+ * Handles the login of a user and sends login request to the server
  */
 loginButton.click(() => {
     username = usernameInput.val();
+    password = passwordInput.val();
     username = username.replace(/ /g, "_"); //delete white spaces in names
     username = username.replace(/[^\w\s]/gi, ''); //delete special characters
+    password = password.replace(/ /g, "_"); //delete white spaces in names
+    password = password.replace(/[^\w\s]/gi, ''); //delete special characters
     userId = socket.id;
     colorCode = "#" + ('00000' + (Math.random() * (1 << 24) | 0).toString(16)).slice(-6);
-    socket.emit("login", { username: username, userid: userId, color: colorCode });
+    socket.emit("login", { username: username, password: password, userid: userId, color: colorCode });
+});
 
+/**
+ * Handles the registration of a user and registers the user on the server
+ */
+registerButton.click(() => {
+    username = usernameInput.val();
+    password = passwordInput.val();
+    username = username.replace(/ /g, "_"); //delete white spaces in names
+    username = username.replace(/[^\w\s]/gi, ''); //delete special characters
+    password = password.replace(/ /g, "_"); //delete white spaces in names
+    password = password.replace(/[^\w\s]/gi, ''); //delete special characters
+    socket.emit("register", {username: username, password: password});
 });
 
 /**
@@ -111,6 +133,7 @@ socket.on("disconnecting", (data) => {
 socket.on("login_successful", (data, callback) => {
     $("#usersonlinelist").html(data.message.usersOnlineListDOM);
     if (data.message.sendername === username) { // we are the logging in user
+        console.log("Lade login config");
         callback = loadLoginConfiguration;
         callback(data.message);
     } else {
@@ -119,10 +142,27 @@ socket.on("login_successful", (data, callback) => {
 });
 
 /**
+ * Handles the register-successful event and gives feedback to the requesting client
+ */
+socket.on("register_successful", (data) => {
+    $("#responseLabel").css("color", "green");
+    $("#responseLabel").html(data.text);
+});
+
+/**
  * Handles the login_failed event and gives feedback to the requesting client why the login failed
  */
 socket.on("login_failed", (data) => {
-    $("#loginFailedLabel").html(data.text);
+    $("#responseLabel").css("color", "red");
+    $("#responseLabel").html(data.text);
+});
+
+/**
+ * Handles the register_failed event and gives feedback to the requesting client why the registration failed
+ */
+socket.on("register_failed", (data) => {
+    $("#responseLabel").css("color", "red");
+    $("#responseLabel").html(data.text);
 });
 
 /**
