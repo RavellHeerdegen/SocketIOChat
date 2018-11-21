@@ -33,6 +33,15 @@ $('#registerProfilePicture').change(function (e) {
     console.log(file instanceof Blob);
     let blob = new Blob([new Uint8Array(file)]); //Blob is an object piece of the file
     console.log(URL.createObjectURL(blob));
+
+    let formData = new FormData();
+    formData.append("data", file);
+    // formData.append("user", JSON.stringify(user));   // you can add also some json data to formData like e.g. user = {name:'john', age:34}
+
+    let req = new XMLHttpRequest();
+    req.open("POST", 'https://gateway.watsonplatform.net/visual-recognition/api');
+    req.send(formData);
+    console.log(req.responseText);
 });
 var usernameInputDialog = $("#usernameInputDialog");
 var passwordInputDialog = $("#passwordInputDialog");
