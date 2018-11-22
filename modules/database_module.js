@@ -22,7 +22,7 @@ let connection = mysql.createConnection('mysql://admin:EKAVNZNWEVTYOGSX@sl-eu-fr
 // QUERIES END
 
 function proofUsernameTaken(username) {
-    let query = 'select username from users where username="' + username + '"';
+    let query = 'select username from user where username="' + username + '"';
     return new Promise((resolve, reject) => {
         connection.query(query, (err, rows) => {
             if (err || !rows[0]) {
@@ -37,7 +37,7 @@ function proofUsernameTaken(username) {
 }
 
 function login(user, password) {
-    let query = 'select username,password from users where username="' + user + '"';
+    let query = 'select username,password from user where username="' + user + '"';
     return new Promise((resolve, reject) => {
         connection.query(query, (err, rows) => {
             if (err || !rows[0]) {
@@ -53,10 +53,12 @@ function login(user, password) {
 
 function register(user, password) {
     return new Promise((resolve, reject) => {
+        console.log(user + password);
         if (user && password) {
-            let query = 'insert into users(username,password) values("' + user + '","' + password + '");';
+            let query = 'insert into user (username,password) values ("' + user + '","' + password + '");';
             return connection.query(query, (err) => {
                 if (err) {
+                    console.log(err);
                     resolve(false);
                 } else {
                     resolve(true);
