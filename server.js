@@ -17,6 +17,14 @@ app.use('/js', express.static(__dirname + '/node_modules/socket.io-stream')); //
 
 // Server variables START
 var users = []; // Sockets
+var files = {},
+struct = {
+    name: null,
+    type: null,
+    size: 0,
+    data: [],
+    slice: 0,
+};
 // Server variables END
 let port = process.env.PORT || 3000;
 /* Start Server */
@@ -72,8 +80,26 @@ io.on("connection", (socket) => {
         });
     });
 
-    socket.on("profile-pic", (data) => {
-        
+    socket.on('profile_pic_upload', (data) => {
+        if (!files[data.name]) {
+            files[data.name] = Object.assign({}, struct, data);
+            files[data.name].data = [];
+        }
+
+        //convert the ArrayBuffer to Buffer 
+        data.data = new Buffer(new Uint8Array(data.data));
+        //save the data 
+        files[data.name].data.push(data.data);
+        files[data.name].slice++;
+
+        if (files[data.name].slice * 100000 >= files[data.name].size) {
+            //do something with the data 
+            console.log("Upload complete");
+        } else {
+            socket.emit('profile_pic_upload_request', {
+                currentSlice: files[data.name].slice
+            });
+        }
     });
 
     //Socket is the connection of the user

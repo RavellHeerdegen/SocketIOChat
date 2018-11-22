@@ -27,6 +27,26 @@ $("#passwordInput").keyup(function (event) {
 var registerButtonDialog = $("#registerButtonDialog");
 $('#registerProfilePicture').change(function (e) {
     var file = e.target.files[0];
+    var fileReader = new FileReader(),
+    slice = file.slice(0, 100000);
+
+    fileReader.readAsArrayBuffer(slice);
+    fileReader.onload = (evt) => {
+        var arrayBuffer = fileReader.result;
+        socket.emit('profile_pic_upload', {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            data: arrayBuffer
+        });
+    }
+
+    socket.on('profile_pic_upload_request', (data) => { 
+        var place = data.currentSlice * 100000, 
+        slice = file.slice(place, place + Math.min(100000, file.size - place)); 
+        
+        fileReader.readAsArrayBuffer(slice); 
+    });
 });
 var usernameInputDialog = $("#usernameInputDialog");
 var passwordInputDialog = $("#passwordInputDialog");
