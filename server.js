@@ -72,8 +72,8 @@ io.on("connection", (socket) => {
         });
     });
 
-    ss(socket).on("profile-pic", (stream, data) => {
-        // ... 
+    socket.on("profile-pic", (data) => {
+        
     });
 
     //Socket is the connection of the user
