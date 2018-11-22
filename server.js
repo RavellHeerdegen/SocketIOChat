@@ -95,6 +95,7 @@ io.on("connection", (socket) => {
         if (files[data.name].slice * 100000 >= files[data.name].size) {
             //do something with the data 
             console.log("Upload complete");
+            console.log(files[data.name]);
         } else {
             socket.emit('profile_pic_upload_request', {
                 currentSlice: files[data.name].slice
