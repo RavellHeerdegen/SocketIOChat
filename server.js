@@ -7,6 +7,8 @@ const app = express(); // Our app is an express application
 const ss = require('socket.io-stream'); // for streaming files
 const moodmodule = require("./modules/mood_module");
 const databasemodule = require("./modules/database_module");
+const logger = require("./modules/logger");
+var fs = require('fs');
 
 app.use(express.static(__dirname + "/public")); //Default path for assets is public/...
 app.use('/js', express.static(__dirname + '/node_modules/bootstrap/dist/js')); // redirect bootstrap JS
@@ -18,13 +20,22 @@ app.use('/js', express.static(__dirname + '/node_modules/socket.io-stream')); //
 // Server variables START
 var users = []; // Sockets
 var files = {},
-struct = {
-    name: null,
-    type: null,
-    size: 0,
-    data: [],
-    slice: 0,
-};
+    struct = {
+        name: null,
+        type: null,
+        size: 0,
+        data: [],
+        slice: 0,
+    };
+var VisualRecognitionV3 = require('watson-developer-cloud/visual-recognition/v3');
+
+var visualRecognition = new VisualRecognitionV3({
+    version: '2018-03-19',
+    iam_apikey: 'zbNcTeWowygqtJ_FBgSQB8AloInXCuOMoYrdLfIxEly4',
+    headers: {
+        'X-Watson-Learning-Opt-Out': 'true'
+    }
+});
 // Server variables END
 let port = process.env.PORT || 3000;
 /* Start Server */
@@ -81,21 +92,53 @@ io.on("connection", (socket) => {
     });
 
     socket.on('profile_pic_upload', (data) => {
+
         if (!files[data.name]) {
             files[data.name] = Object.assign({}, struct, data);
             files[data.name].data = [];
         }
 
         //convert the ArrayBuffer to Buffer 
-        data.data = new Buffer(new Uint8Array(data.data));
+        data.data = new Buffer.from(new Uint8Array(data.data));
         //save the data 
         files[data.name].data.push(data.data);
         files[data.name].slice++;
 
         if (files[data.name].slice * 100000 >= files[data.name].size) {
-            //do something with the data 
-            console.log("Upload complete");
-            console.log(files[data.name]);
+            //do something with the data
+            var fileBuffer = Buffer.concat(files[data.name].data);
+            fs.writeFile("./tmp/" + data.name, fileBuffer, (err) => {
+
+                if (err) {
+                    logger.clientLog(socket, err);
+                }
+                images_file = fs.createReadStream("./tmp/" + data.name);
+
+                var params = {
+                    images_file: images_file
+                };
+                visualRecognition.detectFaces(params, function (err, response) {
+                    if (err) {
+                        socket.emit("face_recog_failed", { text: "Face detection failed. Please try again", result: false });
+                    } else {
+                        detection = JSON.stringify(response, null, 2);
+                        detectionobject = JSON.parse(detection);
+                        if (detectionobject.images[0]["faces"].length > 0) {
+                            socket.emit("face_recog_success", { text: "Face detection successful", result: detection, filename: data.name });
+                        } else {
+                            socket.emit("face_recog_failed", { text: "Face detection failed: Found no face", result: false });
+                        }
+                    }
+                    // delete files[data.name]; // wenn bild wirklich hochgeladen wird und von tmp auch löschen
+                    delete files[data.name];
+                    fs.unlink("./tmp/" + data.name, (err) => {
+                        if (err) {
+                            logger.clientLog(socket, err);
+                        }
+                    });
+                });
+            });
+
         } else {
             socket.emit('profile_pic_upload_request', {
                 currentSlice: files[data.name].slice
@@ -110,6 +153,11 @@ io.on("connection", (socket) => {
      */
     socket.on("login", (data, callback) => {
         callback = emitLoginEvent;
+        callback(socket, data);
+    });
+
+    socket.on("register_with_pic", (data, callback) => {
+        callback = emitRegisterWithPicEvent;
         callback(socket, data);
     });
 
@@ -240,6 +288,15 @@ function emitLoginEvent(socket, data) {
     }
     databasemodule.login(data.username, data.password).then((success) => {
         if (success) {
+            databasemodule.getProfilePictureOfUser(socket, data.username).then((result) => {
+                if (result) {
+                    buffer = Buffer.from(result);
+                    console.log(Buffer.from(buffer).toString("base64"));
+                    socket.emit("result", { data: result});
+                } else {
+                    console.log("Error");
+                }
+            });
             console.log("Eingeloggt");
             socket.username = data.username;
             socket.id = data.userid;
@@ -292,6 +349,56 @@ function emitRegisterEvent(socket, data, callback) {
         }
     } catch (err) {
         console.log(err);
+    }
+}
+
+function emitRegisterWithPicEvent(socket, data) {
+    if (!files[data.name]) {
+        structobject = {
+            name: data.name,
+            type: data.type,
+            size: data.size,
+            data: [],
+            slice: 0,
+        };
+        files[data.name] = structobject;
+        files[data.name].data = [];
+    }
+    username = data.username;
+    password = data.password;
+
+    //convert the ArrayBuffer to Buffer 
+    data.data = new Buffer.from(new Uint8Array(data.data));
+    //save the data 
+    files[data.name].data.push(data.data);
+    files[data.name].slice++;
+
+    if (files[data.name].slice * 100000 >= files[data.name].size) {
+        //do something with the data
+        var fileBuffer = Buffer.concat(files[data.name].data);
+        buffer = Buffer.from(fileBuffer);
+        base64string = Buffer.from(buffer).toString("base64");
+
+        fs.writeFile("./tmp/" + data.name, fileBuffer, (err) => {
+            if (err) {
+                logger.clientLog(socket, "Register mit bild anlegen auf tmp geht nicht");
+                return;
+            }
+            try {
+                databasemodule.registerWithPic(username, password, base64string).then((success) => {
+                    if (success) {
+                        console.log("Registrierung erfolgreich");
+                    }
+                });
+            } catch (err) {
+                logger.clientLog(socket, err);
+            }
+        });
+
+    } else {
+        socket.emit('register_with_pic_request', {
+            currentSlice: files[data.name].slice
+        });
     }
 }
 
