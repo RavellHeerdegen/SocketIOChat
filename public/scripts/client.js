@@ -164,7 +164,6 @@ socket.on("disconnecting", (data) => {
 socket.on("login_successful", (data, callback) => {
     $("#usersonlinelist").html(data.message.usersOnlineListDOM);
     if (data.message.sendername === username) { // we are the logging in user
-        console.log(data.message.profilepic);
         callback = loadLoginConfiguration;
         callback(data.message);
     } else {
@@ -176,7 +175,6 @@ socket.on("login_successful", (data, callback) => {
  * Handles the register-successful event and gives feedback to the requesting client
  */
 socket.on("register_successful", (data) => {
-    console.log("Registrierung funzt");
     $("#responseDialogLabel").css("color", "green");
     $("#responseDialogLabel").html(data.text);
 });
@@ -417,7 +415,6 @@ ss(socket).on("file_upload", (stream, data) => {
     });
 
     stream.on("end", () => {
-        console.log(binaryData);
         let blob = new Blob([new Uint8Array(binaryData)]); //Blob is an object piece of the file
         let fileUrl = URL.createObjectURL(blob);
 

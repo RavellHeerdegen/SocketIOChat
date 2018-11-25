@@ -5,11 +5,14 @@
 const express = require("express"); //Get module express
 const app = express(); // Our app is an express application
 const ss = require('socket.io-stream'); // for streaming files
+// Modules start
 const moodmodule = require("./modules/mood_module");
 const databasemodule = require("./modules/database_module");
+const visualrecognition = require("./modules/visualrecognition_module");
+// Modules end
 const logger = require("./modules/logger");
 const fs = require("fs");
-const visualrecognition = require("./modules/visualrecognition_module");
+const helmet = require('helmet');
 
 app.use(express.static(__dirname + "/public")); //Default path for assets is public/...
 app.use('/js', express.static(__dirname + '/node_modules/bootstrap/dist/js')); // redirect bootstrap JS
@@ -17,6 +20,7 @@ app.use('/js', express.static(__dirname + '/node_modules/jquery/dist')); // redi
 app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css')); // redirect CSS bootstrap
 app.use('/css', express.static(__dirname + '/node_modules/@mdi/font/css')); // redirect CSS MaterialDesignIcons
 app.use('/js', express.static(__dirname + '/node_modules/socket.io-stream')); // redirect JS Socket-io-Stream
+app.use(helmet());
 
 // Server variables START
 var users = []; // Sockets
@@ -220,6 +224,10 @@ function proofCredential(credential, token) {
  * @param {any} data the login data like username and socket.id
  */
 function emitLoginEvent(socket, data) {
+    if (users.find(user => user.username === data.username)) {
+        socket.emit("login_failed", { text: "User already logged in" });
+        return;
+    }
     if (data.username.length == 0 || data.password.length == 0) {
         socket.emit("login_failed", { text: "Missing credentials, please type a name and password" });
         return;
