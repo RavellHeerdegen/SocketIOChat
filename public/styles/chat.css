@@ -43,6 +43,12 @@ body, html {
     padding-top: 8px;
 }
 
+#headerImg {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+}
+
 #logoutButtonDiv {
     display: flex;
     align-items: center;

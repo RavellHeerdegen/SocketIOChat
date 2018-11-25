@@ -8,7 +8,8 @@ const ss = require('socket.io-stream'); // for streaming files
 const moodmodule = require("./modules/mood_module");
 const databasemodule = require("./modules/database_module");
 const logger = require("./modules/logger");
-var fs = require('fs');
+const fs = require("fs");
+const visualrecognition = require("./modules/visualrecognition_module");
 
 app.use(express.static(__dirname + "/public")); //Default path for assets is public/...
 app.use('/js', express.static(__dirname + '/node_modules/bootstrap/dist/js')); // redirect bootstrap JS
@@ -19,23 +20,7 @@ app.use('/js', express.static(__dirname + '/node_modules/socket.io-stream')); //
 
 // Server variables START
 var users = []; // Sockets
-var files = {},
-    struct = {
-        name: null,
-        type: null,
-        size: 0,
-        data: [],
-        slice: 0,
-    };
-var VisualRecognitionV3 = require('watson-developer-cloud/visual-recognition/v3');
 
-var visualRecognition = new VisualRecognitionV3({
-    version: '2018-03-19',
-    iam_apikey: 'zbNcTeWowygqtJ_FBgSQB8AloInXCuOMoYrdLfIxEly4',
-    headers: {
-        'X-Watson-Learning-Opt-Out': 'true'
-    }
-});
 // Server variables END
 let port = process.env.PORT || 3000;
 /* Start Server */
@@ -91,58 +76,30 @@ io.on("connection", (socket) => {
         });
     });
 
-    socket.on('profile_pic_upload', (data) => {
+    ss(socket).on('profile_pic_upload', (stream, data) => {
+        try {
+            let path = './tmp/' + data.name;
+            let writeStream = fs.createWriteStream(path);
+            stream.pipe(writeStream);
 
-        if (!files[data.name]) {
-            files[data.name] = Object.assign({}, struct, data);
-            files[data.name].data = [];
-        }
-
-        //convert the ArrayBuffer to Buffer 
-        data.data = new Buffer.from(new Uint8Array(data.data));
-        //save the data 
-        files[data.name].data.push(data.data);
-        files[data.name].slice++;
-
-        if (files[data.name].slice * 100000 >= files[data.name].size) {
-            //do something with the data
-            var fileBuffer = Buffer.concat(files[data.name].data);
-            fs.writeFile("./tmp/" + data.name, fileBuffer, (err) => {
-
-                if (err) {
-                    logger.clientLog(socket, err);
-                }
-                images_file = fs.createReadStream("./tmp/" + data.name);
-
-                var params = {
-                    images_file: images_file
-                };
-                visualRecognition.detectFaces(params, function (err, response) {
-                    if (err) {
-                        socket.emit("face_recog_failed", { text: "Face detection failed. Please try again", result: false });
+            writeStream.on('finish', () => {
+                visualrecognition.detectFace(socket, path).then((result) => {
+                    if (result) {
+                        const buffer = fs.readFileSync(path);
+                        const base64string = Buffer.from(buffer.toString('base64'));
+                        socket.profilepic = base64string;
+                        socket.emit("face_recog_success", { text: "Face detection successful", result: true });
                     } else {
-                        detection = JSON.stringify(response, null, 2);
-                        detectionobject = JSON.parse(detection);
-                        if (detectionobject.images[0]["faces"].length > 0) {
-                            socket.emit("face_recog_success", { text: "Face detection successful", result: detection, filename: data.name });
-                        } else {
-                            socket.emit("face_recog_failed", { text: "Face detection failed: Found no face", result: false });
-                        }
+                        socket.profilepic = "";
+                        socket.emit("face_recog_failed", { text: "Face detection failed: Found no face", result: false });
                     }
-                    // delete files[data.name]; // wenn bild wirklich hochgeladen wird und von tmp auch löschen
-                    delete files[data.name];
-                    fs.unlink("./tmp/" + data.name, (err) => {
-                        if (err) {
-                            logger.clientLog(socket, err);
-                        }
+                    fs.unlink(path, () => { //delete the file
                     });
+                    // socket.emit('picture with face', result);
                 });
             });
-
-        } else {
-            socket.emit('profile_pic_upload_request', {
-                currentSlice: files[data.name].slice
-            });
+        } catch (err) {
+            console.log(err);
         }
     });
 
@@ -153,11 +110,6 @@ io.on("connection", (socket) => {
      */
     socket.on("login", (data, callback) => {
         callback = emitLoginEvent;
-        callback(socket, data);
-    });
-
-    socket.on("register_with_pic", (data, callback) => {
-        callback = emitRegisterWithPicEvent;
         callback(socket, data);
     });
 
@@ -287,17 +239,8 @@ function emitLoginEvent(socket, data) {
         return;
     }
     databasemodule.login(data.username, data.password).then((success) => {
-        if (success) {
-            databasemodule.getProfilePictureOfUser(socket, data.username).then((result) => {
-                if (result) {
-                    buffer = Buffer.from(result);
-                    console.log(Buffer.from(buffer).toString("base64"));
-                    socket.emit("result", { data: result});
-                } else {
-                    console.log("Error");
-                }
-            });
-            console.log("Eingeloggt");
+        if (success.result) {
+            
             socket.username = data.username;
             socket.id = data.userid;
             socket.colorCode = data.color;
@@ -305,8 +248,12 @@ function emitLoginEvent(socket, data) {
             users.push(socket); // Add client to active users
             // Build the message object
             userConnectedMessage = buildLoginMessage(socket);
+            if (success.profilepic) {
+                base64buffer = Buffer.from(success.profilepic);
+                userConnectedMessage.profilepic = base64buffer;
+            }
             io.in("AllChat").emit("login_successful", { // emit to all users in allchat-room
-                message: userConnectedMessage
+                message: userConnectedMessage,
             });
         } else {
             socket.emit("login_failed", { text: "User not registered" });
@@ -314,7 +261,7 @@ function emitLoginEvent(socket, data) {
     });
 }
 
-function emitRegisterEvent(socket, data, callback) {
+function emitRegisterEvent(socket, data) {
     try {
         if (data.username.length == 0 || data.password.length == 0) {
             socket.emit("register_failed", { text: "Missing credentials, please type a name and password" });
@@ -326,13 +273,24 @@ function emitRegisterEvent(socket, data, callback) {
                     if (taken) {
                         socket.emit("register_failed", { text: "Username already taken" });
                     } else {
-                        databasemodule.register(data.username, data.password).then((success) => {
-                            if (success) {
-                                socket.emit("register_successful", { text: "Registrierung erfolgreich. Loggen Sie sich mit Ihren Daten ein" })
-                            } else {
-                                socket.emit("register_failed", { text: "Registrierung fehlgeschlagen" });
-                            }
-                        });
+                        if (socket.profilepic && socket.profilepic !== "") {
+                            databasemodule.registerWithPic(data.username, data.password, socket.profilepic).then((success) => {
+                                if (success) {
+                                    socket.emit("register_successful", { text: "Registration successful. Please log in now" })
+                                } else {
+                                    socket.emit("register_failed", { text: "Registration failed" });
+                                }
+                            })
+                        } else {
+                            databasemodule.register(data.username, data.password).then((success) => {
+                                if (success) {
+                                    socket.emit("register_successful", { text: "Registration successful. Please log in now" })
+                                } else {
+                                    socket.emit("register_failed", { text: "Registration failed" });
+                                }
+                            });
+                        }
+
                     }
                 });
             } else {
@@ -349,56 +307,6 @@ function emitRegisterEvent(socket, data, callback) {
         }
     } catch (err) {
         console.log(err);
-    }
-}
-
-function emitRegisterWithPicEvent(socket, data) {
-    if (!files[data.name]) {
-        structobject = {
-            name: data.name,
-            type: data.type,
-            size: data.size,
-            data: [],
-            slice: 0,
-        };
-        files[data.name] = structobject;
-        files[data.name].data = [];
-    }
-    username = data.username;
-    password = data.password;
-
-    //convert the ArrayBuffer to Buffer 
-    data.data = new Buffer.from(new Uint8Array(data.data));
-    //save the data 
-    files[data.name].data.push(data.data);
-    files[data.name].slice++;
-
-    if (files[data.name].slice * 100000 >= files[data.name].size) {
-        //do something with the data
-        var fileBuffer = Buffer.concat(files[data.name].data);
-        buffer = Buffer.from(fileBuffer);
-        base64string = Buffer.from(buffer).toString("base64");
-
-        fs.writeFile("./tmp/" + data.name, fileBuffer, (err) => {
-            if (err) {
-                logger.clientLog(socket, "Register mit bild anlegen auf tmp geht nicht");
-                return;
-            }
-            try {
-                databasemodule.registerWithPic(username, password, base64string).then((success) => {
-                    if (success) {
-                        console.log("Registrierung erfolgreich");
-                    }
-                });
-            } catch (err) {
-                logger.clientLog(socket, err);
-            }
-        });
-
-    } else {
-        socket.emit('register_with_pic_request', {
-            currentSlice: files[data.name].slice
-        });
     }
 }
 
@@ -425,6 +333,7 @@ function buildLoginMessage(socket) {
     userConnectedMessage.chatDOM = "<ul class='list-group' id='chatWindow'></ul>";
     userConnectedMessage.loggedInAsString = userConnectedMessage.sendername;
     userConnectedMessage.usersOnlineListDOM = buildOnlineUsersList();
+    userConnectedMessage.profilepic = "";
     return userConnectedMessage;
 }
 

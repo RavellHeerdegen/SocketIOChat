@@ -1,5 +1,4 @@
 const mysql = require('mysql');
-const fs = require("fs");
 
 //MySQL Database connection
 let connection = mysql.createConnection('mysql://admin:EKAVNZNWEVTYOGSX@sl-eu-fra-2-portal.5.dblayer.com:18372/compose');
@@ -37,32 +36,29 @@ function proofUsernameTaken(username) {
     });
 }
 
-function getProfilePictureOfUser(socket, username) {
-    let query = "select profilepic from user where username='" + username + "';";
-    return new Promise((resolve, reject) => {
-        connection.query(query, (err, rows) => {
-            if (err || !rows[0]) {
-                resolve(false);
-            } else {
-                if (rows[0].profilepic) {
-                    resolve(rows[0].profilepic);
-                }
-            }
-        });
-    });
-}
-
 function login(username, password) {
-    let query = 'select username,password from user where username="' + username + '"';
+    let query = 'select username,password,profilepic from user where username="' + username + '"';
+    let result = {
+        result: false,
+        picture: ""
+    };
     return new Promise((resolve, reject) => {
         connection.query(query, (err, rows) => {
             if (err || !rows[0]) {
-                resolve(false);
             } else {
                 if (rows[0].username && rows[0].password) {
-                    resolve(password === rows[0].password);
+                    if (password === rows[0].password) {
+                        // password correct..now check for image
+                        if (rows[0].profilepic && rows[0].profilepic !== "") {
+                            result.result = true;
+                            result.profilepic = rows[0].profilepic;
+                        } else {
+                            result.result = true;
+                        }
+                    }
                 }
             }
+            resolve(result);
         });
     });
 }
@@ -86,7 +82,7 @@ function register(username, password) {
 
 function registerWithPic(username, password, pictureblob) {
     return new Promise((resolve, reject) => {
-        if (username && password) {
+        if (username && password && pictureblob) {
             let query = 'insert into user (username,password,profilepic) values ("' + username + '","' + password + '","' + pictureblob + '" );';
             return connection.query(query, (err) => {
                 if (err) {
@@ -99,4 +95,4 @@ function registerWithPic(username, password, pictureblob) {
     });
 }
 
-module.exports = { login, register, registerWithPic, getProfilePictureOfUser, proofUsernameTaken };
+module.exports = { login, register, registerWithPic, proofUsernameTaken };

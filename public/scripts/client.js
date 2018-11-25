@@ -12,11 +12,13 @@ var chatWindowDiv = $("#chatWindowDiv");
 // loginVariables START
 var loginButton = $("#loginButton");
 var usernameInput = $("#usernameInput");
+
 $("#usernameInput").keyup(function (event) {
     if (event.keyCode === 13) {
         $("#loginButton").click();
     }
 });
+
 var passwordInput = $("#passwordInput");
 $("#passwordInput").keyup(function (event) {
     if (event.keyCode === 13) {
@@ -25,32 +27,24 @@ $("#passwordInput").keyup(function (event) {
 });
 
 var registerButtonDialog = $("#registerButtonDialog");
+
 $('#registerProfilePicture').change(function (e) {
     $("#profilePicDetectionLabel").html("");
     profilePicRecognitionRunning = true;
     profilepicLoader.show();
     var file = e.target.files[0];
-    var fileReader = new FileReader(),
-        slice = file.slice(0, 100000);
-
-    fileReader.readAsArrayBuffer(slice);
-    fileReader.onload = (evt) => {
-        var arrayBuffer = fileReader.result;
-        socket.emit('profile_pic_upload', {
+    if (file) {
+        let stream = ss.createStream();
+        ss(socket).emit('profile_pic_upload', stream, {
             name: file.name,
-            type: file.type,
             size: file.size,
-            data: arrayBuffer
+            type: file.type
         });
+        let blobStream = ss.createBlobReadStream(file);
+        blobStream.pipe(stream);
     }
-
-    socket.on('profile_pic_upload_request', (data) => {
-        var place = data.currentSlice * 100000,
-            slice = file.slice(place, place + Math.min(100000, file.size - place));
-
-        fileReader.readAsArrayBuffer(slice);
-    });
 });
+
 var usernameInputDialog = $("#usernameInputDialog");
 var passwordInputDialog = $("#passwordInputDialog");
 var profilepicLoader = $("#profilepicLoader").hide();
@@ -112,40 +106,7 @@ registerButtonDialog.click(() => {
     password = password.replace(/ /g, "_"); //delete white spaces in names
     password = password.replace(/[^\w\s]/gi, ''); //delete special characters
     if (!profilePicRecognitionRunning) {
-        var file = $('#registerProfilePicture').prop('files')[0];
-
-        if (file) {
-            if (!lastprofilePicRecognitionWasSuccessful) {
-                $("#responseDialogLabel").html("Registration not granted for failing profile picture");
-                return;
-            }
-            // Load the file to server and send user credentials with it
-            var fileReader = new FileReader(),
-                slice = file.slice(0, 100000);
-
-            fileReader.readAsArrayBuffer(slice);
-            fileReader.onload = (evt) => {
-                var arrayBuffer = fileReader.result;
-                socket.emit('register_with_pic', {
-                    name: file.name,
-                    type: file.type,
-                    size: file.size,
-                    data: arrayBuffer,
-                    username: username,
-                    password: password
-                });
-            }
-
-            socket.on('register_with_pic_request', (data) => {
-                var place = data.currentSlice * 100000,
-                    slice = file.slice(place, place + Math.min(100000, file.size - place));
-
-                fileReader.readAsArrayBuffer(slice);
-            });
-        } else {
-            // Just register without picture
-            socket.emit("register", { username: username, password: password });
-        }
+        socket.emit("register", { username: username, password: password });
     }
 });
 
@@ -203,6 +164,7 @@ socket.on("disconnecting", (data) => {
 socket.on("login_successful", (data, callback) => {
     $("#usersonlinelist").html(data.message.usersOnlineListDOM);
     if (data.message.sendername === username) { // we are the logging in user
+        console.log(data.message.profilepic);
         callback = loadLoginConfiguration;
         callback(data.message);
     } else {
@@ -300,6 +262,14 @@ function loadLoginConfiguration(data) {
     rooms.push(activeroom);
     chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
     $("#loggedInUserName").html(data.loggedInAsString);
+    // If profile picture is set
+    if (data.profilepic !== "") {
+        let decodedbase64 = new TextDecoder("utf-8").decode(new Uint8Array(data.profilepic));
+        $("#headerImg").attr("src", "data:image/png;base64," + decodedbase64);
+        $("#headerImg").css("border", "3px solid " + colorCode);
+    } else {
+        $("#headerImg").hide();
+    }
     buildChatItem(data);
     loginDiv.hide();
     chatDiv.show();
