@@ -81,7 +81,6 @@ io.on("connection", (socket) => {
     });
 
     socket.on("profile_pic_upload", (data) => {
-        console.log(data.file);
         var buffer = Buffer.from(data.file, "binary");
         visualrecognition.detectFace(socket, buffer).then((result) => {
             if (result) {
