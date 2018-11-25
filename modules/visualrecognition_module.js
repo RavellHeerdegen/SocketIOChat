@@ -10,10 +10,10 @@ var visualRecognition = new VisualRecognitionV3({
 });
 
 function detectFace(socket, path) {
-    let stream = fs.createReadStream(path);
+    // let stream = fs.createReadStream(path);
 
     var params = {
-        images_file: stream
+        images_file: path
     };
     return new Promise((resolve, reject) => {
         visualRecognition.detectFaces(params, (err, response) => {

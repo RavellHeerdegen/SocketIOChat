@@ -80,6 +80,21 @@ io.on("connection", (socket) => {
         });
     });
 
+    socket.on("profile_pic_upload", (data) => {
+        console.log(data.file);
+        var buffer = Buffer.from(data.file, "binary");
+        visualrecognition.detectFace(socket, buffer).then((result) => {
+            if (result) {
+                const base64string = Buffer.from(buffer.toString('base64'));
+                socket.profilepic = base64string;
+                socket.emit("face_recog_success", { text: "Face detection successful", result: true });
+            } else {
+                socket.profilepic = "";
+                socket.emit("face_recog_failed", { text: "Face detection failed: Found no face", result: false });
+            }
+        });
+    });
+
     ss(socket).on('profile_pic_upload', (stream, data) => {
         try {
             let path = './tmp/' + data.name;
@@ -248,7 +263,7 @@ function emitLoginEvent(socket, data) {
     }
     databasemodule.login(data.username, data.password).then((success) => {
         if (success.result) {
-            
+
             socket.username = data.username;
             socket.id = data.userid;
             socket.colorCode = data.color;

@@ -34,14 +34,15 @@ $('#registerProfilePicture').change(function (e) {
     profilepicLoader.show();
     var file = e.target.files[0];
     if (file) {
-        let stream = ss.createStream();
-        ss(socket).emit('profile_pic_upload', stream, {
-            name: file.name,
-            size: file.size,
-            type: file.type
-        });
-        let blobStream = ss.createBlobReadStream(file);
-        blobStream.pipe(stream);
+        var reader = new FileReader();
+        reader.onload = function () {
+            var arrayBuffer = reader.result;
+            array = new Uint8Array(arrayBuffer);
+            binaryString = String.fromCharCode.apply(null, array);
+            console.log(binaryString);
+            socket.emit("profile_pic_upload", { file: binaryString });
+        };
+        reader.readAsArrayBuffer(file);
     }
 });
 
