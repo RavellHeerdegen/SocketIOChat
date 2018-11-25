@@ -1,5 +1,5 @@
 ---
 applications:
-- name: super-chat-bros
+- name: super-chat-bros-america
   memory: 512M
   instances: 1
