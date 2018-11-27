@@ -20,25 +20,36 @@
         </div>
         <div class="col-sm-12" id="logoTextDiv">
             <h3>Chat with your Bros</h3>
-            <span>(3 to 24 characters)</span>
         </div>
         <div class="modal" tabindex="-1" role="dialog" id="registerDialogDiv">
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">Registration</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <button type="button" class="close" data-dismiss="modal" style="color:white" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <form action="">
                         <div class="modal-body form-group">
-                            <input type="text" placeholder="Username" class="form-control" id="usernameInputDialog"
-                                autofocus class="formField">
-                            <input type="password" placeholder="Password" class="form-control" id="passwordInputDialog"
-                                class="formField">
-                            <span>Upload your profile picture (optional)</span>
-                            <input type="file" id="registerProfilePicture">
+                            <span>Username (3 to 24 characters)</span>
+                            <input type="text" placeholder="Username" class="form-control" id="usernameInputDialog" autofocus class="formField">
+                            <span>Password (8 to 24 characters must contain uppercase letter, lowcase letter and number 0 to 9)</span>
+                            <input type="password" placeholder="Password" class="form-control" id="passwordInputDialog" class="formField">
+                            <div style="margin-top: 12px">
+                                <div>
+                                    <span>Upload your profile picture (optional)</span>
+                                </div>
+                                <div class="col-sm-3" id="fileSendButtonRegisterDiv">
+                                    <label class="btn btn-primary" id="fileSendButtonRegister">
+                                        <i class="material-icons">attach_file</i>
+                                        <input type="file" id="registerProfilePicture" accept="image/jpeg, image/png">
+                                    </label>
+                                </div>
+                                <div class="col-sm-4">
+                                    <img id="profilePicShow"/>
+                                </div>
+                            </div>
                             <div class="loader" id="profilepicLoader"></div>
                             <div id="profilePicDetectionResultDiv">
                                 <label id="profilePicDetectionLabel"></label>
@@ -69,8 +80,7 @@
                         <button class="btn btn-primary" type="button" id="loginButton">Login</button>
                     </div>
                     <div class="col-sm-6" style="display: flex; justify-content: flex-end; align-items: center; padding-right: 0">
-                        <button class="btn btn-warning" type="button" id="registerButton" data-toggle="modal"
-                            data-target="#registerDialogDiv">Register</button>
+                        <button class="btn btn-warning" type="button" id="registerButton" data-toggle="modal" data-target="#registerDialogDiv">Register</button>
                     </div>
                 </div>
             </div>
@@ -123,8 +133,7 @@
                         <div class="col-sm-8" id="inputFieldDiv">
                             <div class="form" action="" id="messageInputField">
                                 <div class="form-group" id="sendFormGroup">
-                                    <input class="form-control" type="text" placeholder="Write something..." id="message"
-                                        autofocus>
+                                    <input class="form-control" type="text" placeholder="Write something..." id="message" autofocus>
                                 </div>
                             </div>
                         </div>

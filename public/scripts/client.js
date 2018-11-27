@@ -35,9 +35,9 @@ $('#registerProfilePicture').change(function (e) {
     var file = e.target.files[0];
     if (file) {
         // CHECK IF IMAGE mit file.type includes image/jpg jpeg oder png und limitier auf 100KB mit file.size < 100
+        if(file.type)
         var reader = new FileReader();
         reader.onload = function () {
-            
             var arrayBuffer = reader.result;
             array = new Uint8Array(arrayBuffer);
             binaryString = String.fromCharCode.apply(null, array);
@@ -100,6 +100,7 @@ loginButton.click(() => {
     socket.emit("login", { username: username, password: password, userid: userId, color: colorCode });
 });
 
+// TO DOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
 registerButtonDialog.click(() => {
     username = usernameInputDialog.val();
     password = passwordInputDialog.val();
