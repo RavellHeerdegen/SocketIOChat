@@ -43,7 +43,8 @@ app.use(helmet.contentSecurityPolicy({
         styleSrc: ["'self'", 'maxcdn.bootstrapcdn.com', "'unsafe-inline'", "fonts.googleapis.com", "fonts.gstatic.com"],
         imgSrc: ["'self'", "'self data:'"],
         fontSrc: ["fonts.googleapis.com", "fonts.gstatic.com", "'self'"],
-        connectSrc: ["'self'", "wss://*.mybluemix.net", "socket.io"]
+        connectSrc: ["'self'", "wss://*.mybluemix.net", "socket.io"],
+        scriptSrc: ["'self'", "'unsafe-inline'", 'unsafe-eval', "https://super-chat-bros-america.eu-de.mybluemix.net"]
     }
 }));
 
