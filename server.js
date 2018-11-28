@@ -25,7 +25,7 @@ app.use(helmet());
 app.use(helmet.contentSecurityPolicy({
     directives: {
         defaultSrc: ["'self'", "wss://super-chat-bros-america"],
-        styleSrc: ["'self'", 'maxcdn.bootstrapcdn.com', "'unsafe-inline'", "fonts.googleapis.com"],
+        styleSrc: ["'self'", 'maxcdn.bootstrapcdn.com', "'unsafe-inline'", "fonts.googleapis.com", "fonts.gstatic.com"],
         imgSrc: ["'self'"]
     }
 }));
