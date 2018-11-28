@@ -48,7 +48,17 @@ $('#registerProfilePicture').change(function (e) {
 });
 
 var usernameInputDialog = $("#usernameInputDialog");
+$("#usernameInputDialog").keyup(function (event) {
+    if (event.keyCode === 13) {
+        $("#registerButtonDialog").click();
+    }
+});
 var passwordInputDialog = $("#passwordInputDialog");
+$("#passwordInputDialog").keyup(function (event) {
+    if (event.keyCode === 13) {
+        $("#registerButtonDialog").click();
+    }
+});
 var profilepicLoader = $("#profilepicLoader").hide();
 var profilePicRecognitionRunning = false;
 var lastprofilePicRecognitionWasSuccessful = false;
@@ -178,8 +188,9 @@ socket.on("login_successful", (data, callback) => {
  * Handles the register-successful event and gives feedback to the requesting client
  */
 socket.on("register_successful", (data) => {
-    $("#responseDialogLabel").css("color", "green");
-    $("#responseDialogLabel").html(data.text);
+    $('#registerDialogDiv').modal("hide");
+    $("#responseLabel").css("color", "green");
+    $("#responseLabel").html(data.text);
 });
 
 /**

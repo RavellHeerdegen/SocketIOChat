@@ -301,7 +301,7 @@ function emitRegisterEvent(socket, data) {
                         if (socket.profilepic && socket.profilepic !== "") {
                             databasemodule.registerWithPic(data.username, data.password, socket.profilepic).then((success) => {
                                 if (success) {
-                                    socket.emit("register_successful", { text: "Registration successful. Please log in now" })
+                                    socket.emit("register_successful", { text: "Registration successful. Please log in with your username:" + data.username })
                                 } else {
                                     socket.emit("register_failed", { text: "Registration failed" });
                                 }
