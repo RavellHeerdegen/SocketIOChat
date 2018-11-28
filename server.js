@@ -10,6 +10,7 @@ const moodmodule = require("./modules/mood_module");
 const databasemodule = require("./modules/database_module");
 const visualrecognition = require("./modules/visualrecognition_module");
 // Modules end
+var express_enforces_ssl = require('express-enforces-ssl');
 const logger = require("./modules/logger");
 const fs = require("fs");
 const helmet = require('helmet');
@@ -21,6 +22,8 @@ app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css'));
 app.use('/css', express.static(__dirname + '/node_modules/@mdi/font/css')); // redirect CSS MaterialDesignIcons
 app.use('/js', express.static(__dirname + '/node_modules/socket.io-stream')); // redirect JS Socket-io-Stream
 app.use(helmet());
+app.enable('trust proxy'); // also works behind reverse proxies (load balancers)
+app.use(express_enforces_ssl());
 
 // Server variables START
 var users = []; // Sockets
