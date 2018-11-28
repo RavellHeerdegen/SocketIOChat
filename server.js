@@ -24,9 +24,11 @@ app.use('/js', express.static(__dirname + '/node_modules/socket.io-stream')); //
 app.use(helmet());
 app.use(helmet.contentSecurityPolicy({
     directives: {
-        defaultSrc: ["'self'", "wss://super-chat-bros-america"],
+        defaultSrc: ["'self'"],
         styleSrc: ["'self'", 'maxcdn.bootstrapcdn.com', "'unsafe-inline'", "fonts.googleapis.com", "fonts.gstatic.com"],
-        imgSrc: ["'self'"]
+        imgSrc: ["'self'"],
+        fontSrc: ["fonts.googleapis.com", "fonts.gstatic.com"],
+        connectSrc: ["'self'", "wss://*super-chat-bros-america.eu-de.mybluemix.net"]
     }
 }));
 app.enable('trust proxy'); // also works behind reverse proxies (load balancers)
