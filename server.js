@@ -27,8 +27,8 @@ app.use(helmet.contentSecurityPolicy({
         defaultSrc: ["'self'"],
         styleSrc: ["'self'", 'maxcdn.bootstrapcdn.com', "'unsafe-inline'", "fonts.googleapis.com", "fonts.gstatic.com"],
         imgSrc: ["'self'"],
-        fontSrc: ["fonts.googleapis.com", "fonts.gstatic.com"],
-        connectSrc: ["'self'", "wss://*super-chat-bros-america.eu-de.mybluemix.net"]
+        fontSrc: ["fonts.googleapis.com", "fonts.gstatic.com", "'self'"],
+        connectSrc: ["'self'", "*:*"]
     }
 }));
 app.enable('trust proxy'); // also works behind reverse proxies (load balancers)
