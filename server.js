@@ -22,15 +22,6 @@ app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css'));
 app.use('/css', express.static(__dirname + '/node_modules/@mdi/font/css')); // redirect CSS MaterialDesignIcons
 app.use('/js', express.static(__dirname + '/node_modules/socket.io-stream')); // redirect JS Socket-io-Stream
 app.use(helmet());
-app.use(helmet.contentSecurityPolicy({
-    directives: {
-        defaultSrc: ["'self'"],
-        styleSrc: ["'self'", 'maxcdn.bootstrapcdn.com', "'unsafe-inline'", "fonts.googleapis.com", "fonts.gstatic.com"],
-        imgSrc: ["'self'"],
-        fontSrc: ["fonts.googleapis.com", "fonts.gstatic.com", "'self'"],
-        connectSrc: ["'self'", "*:*"]
-    }
-}));
 app.enable('trust proxy'); // also works behind reverse proxies (load balancers)
 app.use(express_enforces_ssl());
 
@@ -44,6 +35,17 @@ server = app.listen(port, () => {
     console.log('Server running on port' + port);
 });
 const io = require("socket.io")(server); // Socket is attached to server
+
+// Set up Content Security Policy
+app.use(helmet.contentSecurityPolicy({
+    directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", 'maxcdn.bootstrapcdn.com', "'unsafe-inline'", "fonts.googleapis.com", "fonts.gstatic.com"],
+        imgSrc: ["'self'"],
+        fontSrc: ["fonts.googleapis.com", "fonts.gstatic.com", "'self'"],
+        connectSrc: ["'self'", "wss://*.mybluemix.net", "socket.io"]
+    }
+}));
 
 /* Routes START */
 
