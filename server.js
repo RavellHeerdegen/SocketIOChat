@@ -22,6 +22,12 @@ app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css'));
 app.use('/css', express.static(__dirname + '/node_modules/@mdi/font/css')); // redirect CSS MaterialDesignIcons
 app.use('/js', express.static(__dirname + '/node_modules/socket.io-stream')); // redirect JS Socket-io-Stream
 app.use(helmet());
+app.use(helmet.contentSecurityPolicy({
+    directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", 'maxcdn.bootstrapcdn.com']
+    }
+}));
 app.enable('trust proxy'); // also works behind reverse proxies (load balancers)
 app.use(express_enforces_ssl());
 
@@ -301,7 +307,7 @@ function emitRegisterEvent(socket, data) {
                         if (socket.profilepic && socket.profilepic !== "") {
                             databasemodule.registerWithPic(data.username, data.password, socket.profilepic).then((success) => {
                                 if (success) {
-                                    socket.emit("register_successful", { text: "Registration successful. Please log in with your username:" + data.username })
+                                    socket.emit("register_successful", { text: "Registration successful. Log in with your username: " + data.username })
                                 } else {
                                     socket.emit("register_failed", { text: "Registration failed" });
                                 }
