@@ -44,7 +44,7 @@ app.use(helmet.contentSecurityPolicy({
         imgSrc: ["'self'", "'self data:'"],
         fontSrc: ["fonts.googleapis.com", "fonts.gstatic.com", "'self'"],
         connectSrc: ["'self'", "wss://*.mybluemix.net", "socket.io"],
-        scriptSrc: ["'self' data:", "'unsafe-inline'"]
+        scriptSrc: ["'self'", "'unsafe-inline'", "self data:"]
     }
 }));
 
