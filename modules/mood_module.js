@@ -1,3 +1,5 @@
+/* JAN POHL 761383, RAVELL HEERDEGEN 761330 */
+
 const https = require("https");
 
 function getMood(message) {

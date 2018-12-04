@@ -1,5 +1,6 @@
+/* JAN POHL 761383, RAVELL HEERDEGEN 761330 */
+
 var VisualRecognitionV3 = require('watson-developer-cloud/visual-recognition/v3');
-const fs = require("fs");
 
 var visualRecognition = new VisualRecognitionV3({
     version: '2018-03-19',
@@ -10,7 +11,6 @@ var visualRecognition = new VisualRecognitionV3({
 });
 
 function detectFace(socket, path) {
-    // let stream = fs.createReadStream(path);
 
     var params = {
         images_file: path
@@ -18,7 +18,6 @@ function detectFace(socket, path) {
     return new Promise((resolve, reject) => {
         visualRecognition.detectFaces(params, (err, response) => {
             if (err) {
-                console.log(err);
                 socket.emit("face_recog_failed", { text: "Face detection failed. Please try again", result: false });
             } else {
                 let result = JSON.stringify(response, null, 2).toString();

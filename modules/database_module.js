@@ -1,3 +1,5 @@
+/* JAN POHL 761383, RAVELL HEERDEGEN 761330 */
+
 const mysql = require('mysql');
 
 //MySQL Database connection
@@ -48,7 +50,6 @@ function login(username, password) {
             } else {
                 if (rows[0].username && rows[0].password) {
                     if (password === rows[0].password) {
-                        // password correct..now check for image
                         if (rows[0].profilepic && rows[0].profilepic !== "") {
                             result.result = true;
                             result.profilepic = rows[0].profilepic;
@@ -65,12 +66,10 @@ function login(username, password) {
 
 function register(username, password) {
     return new Promise((resolve, reject) => {
-        console.log(username + password);
         if (username && password) {
             let query = 'insert into user (username,password) values ("' + username + '","' + password + '");';
             return connection.query(query, (err) => {
                 if (err) {
-                    console.log(err);
                     resolve(false);
                 } else {
                     resolve(true);
