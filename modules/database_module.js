@@ -23,6 +23,10 @@ let connection = mysql.createConnection('mysql://admin:EKAVNZNWEVTYOGSX@sl-eu-fr
 
 // QUERIES END
 
+/**
+ * Proofs if the given username is already taken
+ * @param {String} username 
+ */
 function proofUsernameTaken(username) {
     let query = 'select username from user where username="' + username + '"';
     return new Promise((resolve, reject) => {
@@ -38,6 +42,11 @@ function proofUsernameTaken(username) {
     });
 }
 
+/**
+ * Logs an user into the database and returns the login result
+ * @param {String} username 
+ * @param {String} password 
+ */
 function login(username, password) {
     let query = 'select username,password,profilepic from user where username="' + username + '"';
     let result = {
@@ -64,6 +73,11 @@ function login(username, password) {
     });
 }
 
+/**
+ * Registers a user in the database and returns the registration result
+ * @param {Stirng} username 
+ * @param {String} password 
+ */
 function register(username, password) {
     return new Promise((resolve, reject) => {
         if (username && password) {
@@ -79,6 +93,12 @@ function register(username, password) {
     });
 }
 
+/**
+ * Registers a user in the database and returns the registration result
+ * @param {Stirng} username 
+ * @param {String} password 
+ * @param pictureblob the profile picture
+ */
 function registerWithPic(username, password, pictureblob) {
     return new Promise((resolve, reject) => {
         if (username && password && pictureblob) {

@@ -2,6 +2,10 @@
 
 const https = require("https");
 
+/**
+ * Proofs the mood of a user via the given message
+ * @param {String} message the message to proof
+ */
 function getMood(message) {
     return new Promise((resolve, reject) => {
 

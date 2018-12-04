@@ -109,33 +109,6 @@ io.on("connection", (socket) => {
         });
     });
 
-    ss(socket).on('profile_pic_upload', (stream, data) => {
-        try {
-            let path = './tmp/' + data.name;
-            let writeStream = fs.createWriteStream(path);
-            stream.pipe(writeStream);
-
-            writeStream.on('finish', () => {
-                visualrecognition.detectFace(socket, path).then((result) => {
-                    if (result) {
-                        const buffer = fs.readFileSync(path);
-                        const base64string = Buffer.from(buffer.toString('base64'));
-                        socket.profilepic = base64string;
-                        socket.emit("face_recog_success", { text: "Face detection successful", result: true });
-                    } else {
-                        socket.profilepic = "";
-                        socket.emit("face_recog_failed", { text: "Face detection failed: Found no face", result: false });
-                    }
-                    fs.unlink(path, () => { //delete the file
-                    });
-                    // socket.emit('picture with face', result);
-                });
-            });
-        } catch (err) {
-            console.log(err);
-        }
-    });
-
     //Socket is the connection of the user
 
     /**
@@ -298,6 +271,11 @@ function emitLoginEvent(socket, data) {
     });
 }
 
+/**
+ * 
+ * @param {Socket} socket 
+ * @param data the username, password of a client 
+ */
 function emitRegisterEvent(socket, data) {
     try {
         if (data.username.length == 0 || data.password.length == 0) {

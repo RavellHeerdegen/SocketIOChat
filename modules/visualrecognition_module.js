@@ -10,6 +10,11 @@ var visualRecognition = new VisualRecognitionV3({
     }
 });
 
+/**
+ * Detects faces via IBM Visual Recognition
+ * @param {Socket} socket the socket to use
+ * @param {String} path the path of the file
+ */
 function detectFace(socket, path) {
 
     var params = {

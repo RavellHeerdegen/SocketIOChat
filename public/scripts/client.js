@@ -28,6 +28,9 @@ $("#passwordInput").keyup(function (event) {
 
 var registerButtonDialog = $("#registerButtonDialog");
 
+/**
+ * Called if a profile picture has been chosen by a client in the register dialog
+ */
 $('#registerProfilePicture').change(function (e) {
     $("#profilePicDetectionLabel").html("");
     profilePicRecognitionRunning = true;
@@ -115,6 +118,9 @@ loginButton.click(() => {
     socket.emit("login", { username: username, password: password, userid: userId, color: colorCode });
 });
 
+/**
+ * Handles the register of a user and sends register request to the server
+ */
 registerButtonDialog.click(() => {
     username = usernameInputDialog.val();
     password = passwordInputDialog.val();
@@ -127,6 +133,9 @@ registerButtonDialog.click(() => {
     }
 });
 
+/**
+ * If a user got logged in successfully the image of the user is updated on the chat-page
+ */
 socket.on("result", (data) => {
     const img = $("#headerImg");
     img.attr("src", 'data:image/png;base64,' + data.data);
@@ -260,6 +269,9 @@ socket.on("update_chattabs", (data) => {
     $("#" + activeroom.roomname).css("background", "#90a4ae");
 });
 
+/**
+ * Handles the clientlog-event and logs thedata to the users browser console
+ */
 socket.on("clientlog", (data) => {
     console.log(data.log);
 })
