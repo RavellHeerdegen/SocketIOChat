@@ -35,7 +35,7 @@ $('#registerProfilePicture').change(function (e) {
     var file = e.target.files[0];
     if (file) {
         // CHECK IF IMAGE mit file.type includes image/jpg jpeg oder png und limitier auf 100KB mit file.size < 100
-        if (file.type.match('image/jpeg', 'image/png') && file.size <= 100){
+        if (file.type.match('image/jpeg', 'image/png') && file.size <= 100) {
             var reader = new FileReader();
             reader.onload = function () {
                 var arrayBuffer = reader.result;
@@ -44,8 +44,9 @@ $('#registerProfilePicture').change(function (e) {
                 socket.emit("profile_pic_upload", { file: binaryString });
             };
             reader.readAsArrayBuffer(file);
-        }else{
-            
+        } else {
+            $("#responseDialogLabel").css("color", "red");
+            $("#responseDialogLabel").html("Filetype wrong or file too big");
         }
 
     }
@@ -114,7 +115,6 @@ loginButton.click(() => {
     socket.emit("login", { username: username, password: password, userid: userId, color: colorCode });
 });
 
-// TO DOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
 registerButtonDialog.click(() => {
     username = usernameInputDialog.val();
     password = passwordInputDialog.val();
@@ -127,7 +127,6 @@ registerButtonDialog.click(() => {
     }
 });
 
-// TO DOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
 socket.on("result", (data) => {
     const img = $("#headerImg");
     img.attr("src", 'data:image/png;base64,' + data.data);
