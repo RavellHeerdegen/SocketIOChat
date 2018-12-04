@@ -34,8 +34,9 @@ $('#registerProfilePicture').change(function (e) {
     profilepicLoader.show();
     var file = e.target.files[0];
     if (file) {
+        console.log(file.type);
         // CHECK IF IMAGE mit file.type includes image/jpg jpeg oder png und limitier auf 100KB mit file.size < 100
-        if (file.type.match('image/jpeg', 'image/png') && file.size <= 100000) {
+        if ((file.type.match('image/jpeg') || file.type.match("image/png") || file.type.match("image/jpg")) && file.size <= 100000) {
             var reader = new FileReader();
             reader.onload = function () {
                 var arrayBuffer = reader.result;
