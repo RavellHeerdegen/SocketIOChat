@@ -8,16 +8,20 @@ var salt = bcrypt.genSaltSync(10);
 let connection = mysql.createConnection('mysql://admin:EKAVNZNWEVTYOGSX@sl-eu-fra-2-portal.5.dblayer.com:18372/compose');
 
 // TABLE QUERIES
-// let getallusersquery = "select * from users";
-// let deleterowsquery = "delete from users;";
+// let getallusersquery = "create table user (username varchar(24) primary key, password varchar(100) not null, profilepic longblob);";
+// let deleterowsquery = "create table user (username varchar(24) primary key, password nvarchar(4000) not null, profilepic LONGBLOB);";
+// let selectquery = "select * from user;";
 // let addcolumnquery = "alter table users ADD profilepictureID VARCHAR(100);";
 // return new Promise((resolve, reject) => {
-//     connection.query(deleterowsquery, (err, rows) => {
+//     connection.query(selectquery, (err, rows) => {
 //         if (err || !rows[0]) {
+//             console.log(err);
+//             console.log("NIX DRIN");
 //             resolve(false);
 //         } else {
-//             if (rows[0].username) {
+//             if (rows[0]) {
 //                 console.log(rows[0]);
+//                 console.log("PAINIS");
 //                 resolve(true);
 //             }
 //         }
@@ -84,8 +88,7 @@ function login(username, password) {
 function register(username, password) {
     return new Promise((resolve, reject) => {
         if (username && password) {
-            var hash = bcrypt.hashSync(password, salt);
-            let query = 'insert into user (username,password) values ("' + username + '","' + hash + '");';
+            let query = 'insert into user (username,password) values ("' + username + '","' + password + '");';
             return connection.query(query, (err) => {
                 if (err) {
                     resolve(false);
@@ -106,8 +109,7 @@ function register(username, password) {
 function registerWithPic(username, password, pictureblob) {
     return new Promise((resolve, reject) => {
         if (username && password && pictureblob) {
-            var hash = bcrypt.hashSync(password, salt);
-            let query = 'insert into user (username,password,profilepic) values ("' + username + '","' + hash + '","' + pictureblob + '" );';
+            let query = 'insert into user (username,password,profilepic) values ("' + username + '","' + password + '","' + pictureblob + '" );';
             return connection.query(query, (err) => {
                 if (err) {
                     resolve(false);

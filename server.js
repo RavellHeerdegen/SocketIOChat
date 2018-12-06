@@ -14,6 +14,8 @@ var express_enforces_ssl = require('express-enforces-ssl');
 const logger = require("./modules/logger");
 const fs = require("fs");
 const helmet = require('helmet');
+var bcrypt = require('bcryptjs');
+var salt = bcrypt.genSaltSync(10);
 
 app.use(express.static(__dirname + "/public")); //Default path for assets is public/...
 app.use('/js', express.static(__dirname + '/node_modules/bootstrap/dist/js')); // redirect bootstrap JS
@@ -289,7 +291,8 @@ function emitRegisterEvent(socket, data) {
                         socket.emit("register_failed", { text: "Username already taken" });
                     } else {
                         if (socket.profilepic && socket.profilepic !== "") {
-                            databasemodule.registerWithPic(data.username, data.password, socket.profilepic).then((success) => {
+                            var hash = bcrypt.hashSync(data.password, salt);
+                            databasemodule.registerWithPic(data.username, hash, socket.profilepic).then((success) => {
                                 if (success) {
                                     socket.emit("register_successful", { text: "Registration successful. Log in with your username: " + data.username })
                                 } else {
@@ -297,7 +300,8 @@ function emitRegisterEvent(socket, data) {
                                 }
                             })
                         } else {
-                            databasemodule.register(data.username, data.password).then((success) => {
+                            var hash = bcrypt.hashSync(data.password, salt);
+                            databasemodule.register(data.username, hash).then((success) => {
                                 if (success) {
                                     socket.emit("register_successful", { text: "Registration successful. Please log in now" })
                                 } else {
@@ -305,7 +309,6 @@ function emitRegisterEvent(socket, data) {
                                 }
                             });
                         }
-
                     }
                 });
             } else {
