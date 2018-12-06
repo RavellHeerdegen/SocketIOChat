@@ -2,13 +2,14 @@
 
 const mysql = require('mysql');
 var bcrypt = require('bcryptjs');
+var salt = bcrypt.genSaltSync(10);
 
 //MySQL Database connection
 let connection = mysql.createConnection('mysql://admin:EKAVNZNWEVTYOGSX@sl-eu-fra-2-portal.5.dblayer.com:18372/compose');
 
 // TABLE QUERIES
 // let getallusersquery = "select * from users";
-// let deleterowsquery = "delete from users;";
+// let deleterowsquery = "create table users (username varchar(24) primary key not null, password varchar(100) not null, profilepic longblob);";
 // let addcolumnquery = "alter table users ADD profilepictureID VARCHAR(100);";
 // return new Promise((resolve, reject) => {
 //     connection.query(deleterowsquery, (err, rows) => {
