@@ -8,19 +8,19 @@ let connection = mysql.createConnection('mysql://admin:EKAVNZNWEVTYOGSX@sl-eu-fr
 
 // TABLE QUERIES
 // let getallusersquery = "select * from users";
-let deleterowsquery = "delete from users;";
+// let deleterowsquery = "delete from users;";
 // let addcolumnquery = "alter table users ADD profilepictureID VARCHAR(100);";
-return new Promise((resolve, reject) => {
-    connection.query(deleterowsquery, (err, rows) => {
-        if (err || !rows[0]) {
-            resolve(false);
-        } else {
-            if (rows[0].username) {
-                resolve(true);
-            }
-        }
-    });
-});
+// return new Promise((resolve, reject) => {
+//     connection.query(deleterowsquery, (err, rows) => {
+//         if (err || !rows[0]) {
+//             resolve(false);
+//         } else {
+//             if (rows[0].username) {
+//                 resolve(true);
+//             }
+//         }
+//     });
+// });
 
 // QUERIES END
 
