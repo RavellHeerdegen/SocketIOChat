@@ -9,7 +9,7 @@ let connection = mysql.createConnection('mysql://admin:EKAVNZNWEVTYOGSX@sl-eu-fr
 
 // TABLE QUERIES
 // let getallusersquery = "select * from users";
-// let deleterowsquery = "create table users (username varchar(24) primary key not null, password varchar(100) not null, profilepic longblob);";
+// let deleterowsquery = "delete from users;";
 // let addcolumnquery = "alter table users ADD profilepictureID VARCHAR(100);";
 // return new Promise((resolve, reject) => {
 //     connection.query(deleterowsquery, (err, rows) => {
@@ -17,6 +17,7 @@ let connection = mysql.createConnection('mysql://admin:EKAVNZNWEVTYOGSX@sl-eu-fr
 //             resolve(false);
 //         } else {
 //             if (rows[0].username) {
+//                 console.log(rows[0]);
 //                 resolve(true);
 //             }
 //         }
@@ -60,18 +61,14 @@ function login(username, password) {
             if (err || !rows[0]) {
             } else {
                 if (rows[0].username && rows[0].password) {
-                    bcrypt.compare(password, hash, function(err, res) {
-                        if (res) {
-                            if (rows[0].profilepic && rows[0].profilepic !== "") {
-                                result.result = true;
-                                result.profilepic = rows[0].profilepic;
-                            } else {
-                                result.result = true;
-                            }
+                    if (bcrypt.compareSync(password, rows[0].password)) {
+                        if (rows[0].profilepic && rows[0].profilepic !== "") {
+                            result.result = true;
+                            result.profilepic = rows[0].profilepic;
                         } else {
-
+                            result.result = true;
                         }
-                    });
+                    }
                 }
             }
             resolve(result);
@@ -87,17 +84,14 @@ function login(username, password) {
 function register(username, password) {
     return new Promise((resolve, reject) => {
         if (username && password) {
-            bcrypt.genSalt(10, function (err, salt) {
-                bcrypt.hash(password, salt, function (err, hash) {
-                    let query = 'insert into user (username,password) values ("' + username + '","' + hash + '");';
-                    return connection.query(query, (err) => {
-                        if (err) {
-                            resolve(false);
-                        } else {
-                            resolve(true);
-                        }
-                    });
-                });
+            var hash = bcrypt.hashSync(password, salt);
+            let query = 'insert into user (username,password) values ("' + username + '","' + hash + '");';
+            return connection.query(query, (err) => {
+                if (err) {
+                    resolve(false);
+                } else {
+                    resolve(true);
+                }
             });
         } else resolve(false);
     });
@@ -112,17 +106,14 @@ function register(username, password) {
 function registerWithPic(username, password, pictureblob) {
     return new Promise((resolve, reject) => {
         if (username && password && pictureblob) {
-            bcrypt.genSalt(10, function (err, salt) {
-                bcrypt.hash(password, salt, function (err, hash) {
-                    let query = 'insert into user (username,password,profilepic) values ("' + username + '","' + hash + '","' + pictureblob + '" );';
-                    return connection.query(query, (err) => {
-                        if (err) {
-                            resolve(false);
-                        } else {
-                            resolve(true);
-                        }
-                    });
-                });
+            var hash = bcrypt.hashSync(password, salt);
+            let query = 'insert into user (username,password,profilepic) values ("' + username + '","' + hash + '","' + pictureblob + '" );';
+            return connection.query(query, (err) => {
+                if (err) {
+                    resolve(false);
+                } else {
+                    resolve(true);
+                }
             });
         } else resolve(false);
     });
