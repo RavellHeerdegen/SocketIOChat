@@ -68,7 +68,6 @@ app.get('/socket.io-stream.js', (req, res, next) => {
     return res.sendFile(__dirname + '/node_modules/socket.io-stream/socket.io-stream.js');
 });
 
-var instanceId = cfCore.app && cfCore.app != null ? cfCore.app.instance_id : undefined;
 app.get('/instanceId', function (req, res) {
     res.end(JSON.stringify({
         id: appEnv.getServices()
