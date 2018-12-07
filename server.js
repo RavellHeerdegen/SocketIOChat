@@ -70,14 +70,9 @@ app.get('/socket.io-stream.js', (req, res, next) => {
 
 var instanceId = cfCore.app && cfCore.app != null ? cfCore.app.instance_id : undefined;
 app.get('/instanceId', function (req, res) {
-    if (!instanceId) {
-        res.writeHeader(204);
-        res.end();
-    } else {
-        res.end(JSON.stringify({
-            id: instanceId
-        }));
-    }
+    res.end(JSON.stringify({
+        id: appEnv.getServices()
+    }));
 });
 
 /* Routes END */
