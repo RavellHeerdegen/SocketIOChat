@@ -38,8 +38,8 @@ let port = process.env.PORT || 3000;
 // server = app.listen(port, () => {
 //     console.log('Server running on port' + port);
 // });
-server.listen(appEnv.port, appEnv.bind, function() {
-    console.log("server starting on " + appEnv.url)
+server = app.listen(appEnv.port, appEnv.bind, function() {
+    console.log("server starting on " + appEnv.url);
 })
 const io = require("socket.io")(server); // Socket is attached to server
 
