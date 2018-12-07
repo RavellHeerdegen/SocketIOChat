@@ -5,8 +5,7 @@
 const express = require("express"); //Get module express
 const app = express(); // Our app is an express application
 var cfenv = require("cfenv");
-var pkg = require("./package.json");
-var cfCore = cfenv.getCore({ name: pkg.name });
+var appEnv = cfenv.getAppEnv();
 const ss = require('socket.io-stream'); // for streaming files
 // Modules start
 const moodmodule = require("./modules/mood_module");
@@ -36,9 +35,12 @@ var users = []; // Sockets
 // Server variables END
 let port = process.env.PORT || 3000;
 /* Start Server */
-server = app.listen(port, () => {
-    console.log('Server running on port' + port);
-});
+// server = app.listen(port, () => {
+//     console.log('Server running on port' + port);
+// });
+server.listen(appEnv.port, appEnv.bind, function() {
+    console.log("server starting on " + appEnv.url)
+})
 const io = require("socket.io")(server); // Socket is attached to server
 
 // Set up Content Security Policy
