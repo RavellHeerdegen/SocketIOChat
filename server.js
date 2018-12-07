@@ -5,6 +5,8 @@
 const express = require("express"); //Get module express
 const app = express(); // Our app is an express application
 var cfenv = require("cfenv");
+var pkg = require("./package.json");
+var cfCore = cfenv.getCore({ name: pkg.name });
 const ss = require('socket.io-stream'); // for streaming files
 // Modules start
 const moodmodule = require("./modules/mood_module");
@@ -62,6 +64,18 @@ app.get("/", (req, res) => {
 
 app.get('/socket.io-stream.js', (req, res, next) => {
     return res.sendFile(__dirname + '/node_modules/socket.io-stream/socket.io-stream.js');
+});
+
+var instanceId = cfCore.app && cfCore.app != null ? cfCore.app.instance_id : undefined;
+app.get('/instanceId', function (req, res) {
+    if (!instanceId) {
+        res.writeHeader(204);
+        res.end();
+    } else {
+        res.end(JSON.stringify({
+            id: instanceId
+        }));
+    }
 });
 
 /* Routes END */
