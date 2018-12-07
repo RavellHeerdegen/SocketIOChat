@@ -4,6 +4,7 @@
 /* Initialisation of all modules and prototypes START */
 const express = require("express"); //Get module express
 const app = express(); // Our app is an express application
+var cfenv = require("cfenv");
 const ss = require('socket.io-stream'); // for streaming files
 // Modules start
 const moodmodule = require("./modules/mood_module");
@@ -23,9 +24,9 @@ app.use('/js', express.static(__dirname + '/node_modules/jquery/dist')); // redi
 app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css')); // redirect CSS bootstrap
 app.use('/css', express.static(__dirname + '/node_modules/@mdi/font/css')); // redirect CSS MaterialDesignIcons
 app.use('/js', express.static(__dirname + '/node_modules/socket.io-stream')); // redirect JS Socket-io-Stream
-app.use(helmet());
-app.enable('trust proxy'); // also works behind reverse proxies (load balancers)
-app.use(express_enforces_ssl());
+// app.use(helmet());
+// app.enable('trust proxy'); // also works behind reverse proxies (load balancers)
+// app.use(express_enforces_ssl());
 
 // Server variables START
 var users = []; // Sockets
@@ -39,16 +40,16 @@ server = app.listen(port, () => {
 const io = require("socket.io")(server); // Socket is attached to server
 
 // Set up Content Security Policy
-app.use(helmet.contentSecurityPolicy({
-    directives: {
-        defaultSrc: ["'self'"],
-        styleSrc: ["'self'", 'maxcdn.bootstrapcdn.com', "'unsafe-inline'", "fonts.googleapis.com", "fonts.gstatic.com"],
-        imgSrc: ["'self'", "self data: blob:;"],
-        fontSrc: ["fonts.googleapis.com", "fonts.gstatic.com", "'self'"],
-        connectSrc: ["'self'", "wss://*.mybluemix.net", "socket.io"],
-        scriptSrc: ["'self'", "'unsafe-inline'"]
-    }
-}));
+// app.use(helmet.contentSecurityPolicy({
+//     directives: {
+//         defaultSrc: ["'self'"],
+//         styleSrc: ["'self'", 'maxcdn.bootstrapcdn.com', "'unsafe-inline'", "fonts.googleapis.com", "fonts.gstatic.com"],
+//         imgSrc: ["'self'", "self data: blob:;"],
+//         fontSrc: ["fonts.googleapis.com", "fonts.gstatic.com", "'self'"],
+//         connectSrc: ["'self'", "wss://*.mybluemix.net", "socket.io"],
+//         scriptSrc: ["'self'", "'unsafe-inline'"]
+//     }
+// }));
 
 /* Routes START */
 
