@@ -179,6 +179,7 @@ socket.on("send", (data) => {
  * Handles the disconnecting socket-event of the server if a user leaves
  */
 socket.on("disconnecting", (data) => {
+    console.log(data);
     $("#usersonlinelist").html(data.message.usersOnlineListDOM);
     buildChatItem(data.message);
 });
@@ -187,6 +188,7 @@ socket.on("disconnecting", (data) => {
  * Handles the login_successful socket-event of the server depending who the user is
  */
 socket.on("login_successful", (data, callback) => {
+    console.log(data);
     $("#usersonlinelist").html(data.message.usersOnlineListDOM);
     if (data.message.sendername === username) { // we are the logging in user
         console.log("Logged into chat. Nice!");
@@ -275,7 +277,13 @@ socket.on("update_chattabs", (data) => {
  */
 socket.on("clientlog", (data) => {
     console.log(data.log);
-})
+});
+
+socket.on("profilepic_loaded", (data) => {
+    let decodedbase64 = new TextDecoder("utf-8").decode(new Uint8Array(data.image));
+    $("#headerImg").attr("src", "data:image/png;base64," + decodedbase64);
+    $("#headerImg").css("border", "3px solid " + data.colorcode);
+});
 
 /* Socket.on Events END */
 
@@ -291,13 +299,13 @@ function loadLoginConfiguration(data) {
     chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
     $("#loggedInUserName").html(data.loggedInAsString);
     // If profile picture is set
-    if (data.profilepic !== "") {
-        let decodedbase64 = new TextDecoder("utf-8").decode(new Uint8Array(data.profilepic));
-        $("#headerImg").attr("src", "data:image/png;base64," + decodedbase64);
-        $("#headerImg").css("border", "3px solid " + colorCode);
-    } else {
-        $("#headerImg").hide();
-    }
+    // if (data.profilepic !== "") {
+    //     let decodedbase64 = new TextDecoder("utf-8").decode(new Uint8Array(data.profilepic));
+    //     $("#headerImg").attr("src", "data:image/png;base64," + decodedbase64);
+    //     $("#headerImg").css("border", "3px solid " + colorCode);
+    // } else {
+    //     $("#headerImg").hide();
+    // }
     buildChatItem(data);
     loginDiv.hide();
     chatDiv.show();
@@ -349,6 +357,7 @@ function buildChatItem(data) {
  * Reloads the page so the user gets unregistered and lands on the login page
  */
 function loadLogoutConfiguration() {
+    socket.emit("disconnecting");
     location.reload(true);
 }
 

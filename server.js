@@ -105,27 +105,24 @@ sub.subscribe("disconnecting");
 
 sub.on("message", (channel, message) => {
     try {
-        users.forEach(socket => {
-            socket.emit("clientlog", {
-                log: message
-            });
-        });
-        let data = JSON.parse(message); //TODO when disconnecting it is not an object its an string {name:petergit } vs `peter`
-        users.forEach(socket => {
-            socket.emit("clientlog", {
-                log: data[0]
-            });
-        });
 
+        console.log(message);
         switch (channel) {
 
             case "login_successful":
                 users.forEach(socket => {
                     socket.emit("login_successful", {
-                        message: data[0]
+                        message: JSON.parse(message)
                     });
                 });
                 break;
+
+            case "disconnecting":
+                users.forEach(socket => {
+                    socket.emit("disconnecting", {
+                        message: JSON.parse(message)
+                    })
+                });
 
         }
     } catch (err) {
@@ -329,9 +326,13 @@ function emitLoginEvent(socket, data) {
                                     userConnectedMessage = buildLoginMessage(socket);
                                     if (success.profilepic) {
                                         base64buffer = Buffer.from(success.profilepic);
-                                        userConnectedMessage.profilepic = base64buffer;
+                                        // userConnectedMessage.profilepic = base64buffer;
+                                        socket.emit("profilepic_loaded", {
+                                            image: base64buffer,
+                                            colorcode: socket.colorCode
+                                        });
                                     }
-                                    pub.publish("login_successful", userConnectedMessage);
+                                    pub.publish("login_successful", JSON.stringify(userConnectedMessage));
                                 } else {
                                     socket.emit("login_failed", { text: "Login failed due to database issues" });
                                 }
@@ -445,9 +446,7 @@ function emitLogoutEvent(socket) {
         databasemodule.deleteLoggedInUser(socket.username).then((result) => {
             if (result) {
                 userDisconnectedMessage = buildLogoutMessage(socket);
-                pub.publish("disconnecting", {
-                    message: userDisconnectedMessage
-                });
+                pub.publish("disconnecting", JSON.stringify(userDisconnectedMessage));
             } else {
                 console.log("Error on deleting user of db");
                 console.log(result);
