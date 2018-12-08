@@ -53,7 +53,7 @@ app.use(
         resave: false
     })
 );
-app.use(cookieParser);
+
 
 // Server variables START
 var users = []; // Sockets
