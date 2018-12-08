@@ -8,15 +8,16 @@ var salt = bcrypt.genSaltSync(10);
 let connection = mysql.createConnection('mysql://admin:EKAVNZNWEVTYOGSX@sl-eu-fra-2-portal.5.dblayer.com:18372/compose');
 
 // TABLE QUERIES
-// let createloggedinuser = "insert into loggedinusers (username) values ('Mario')";
+// let createloggedinuser = "insert into loggedinusers (username) values ('Administrator')";
 // let createloggedinuserstablequery = "create table loggedinusers (username varchar(24) primary key);";
 // let getallusersquery = "create table user (username varchar(24) primary key, password varchar(100) not null, profilepic longblob);";
 // let deleterowsquery = "create table user (username varchar(24) primary key, password nvarchar(4000) not null, profilepic LONGBLOB);";
 // let selectquery = "select * from user;";
+// let deleteallloggedinusers = "delete from loggedinusers;";
 // let getallloggedinusers = "select * from loggedinusers;";
 // let addcolumnquery = "alter table users ADD profilepictureID VARCHAR(100);";
 // return new Promise((resolve, reject) => {
-//     connection.query(getallloggedinusers, (err, rows) => {
+//     connection.query(createloggedinuser, (err, rows) => {
 //         if (err || !rows[0]) {
 //             console.log(err);
 //             console.log("NIX DRIN");

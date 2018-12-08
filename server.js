@@ -289,50 +289,50 @@ function emitLoginEvent(socket, data) {
         if (result) {
             socket.emit("login_failed", { text: "User already logged in" });
             return;
-        }
-    });
+        } else {
+            if (data.username.length == 0 || data.password.length == 0) {
+                socket.emit("login_failed", { text: "Missing credentials, please type a name and password" });
+                return;
+            }
 
-    if (data.username.length == 0 || data.password.length == 0) {
-        socket.emit("login_failed", { text: "Missing credentials, please type a name and password" });
-        return;
-    }
-
-    usernameValid = proofCredential(data.username, "U");
-    passwordValid = proofCredential(data.password, "P");
-    if (usernameValid != "valid" && passwordValid == "valid") {
-        socket.emit("login_failed", { text: usernameValid });
-        return;
-    }
-    if (usernameValid == "valid" && passwordValid != "valid") {
-        socket.emit("login_failed", { text: passwordValid });
-        return;
-    }
-    if (usernameValid != "valid" && passwordValid != "valid") {
-        socket.emit("login_failed", { text: "Username and password are incorrect" });
-        return;
-    }
-    databasemodule.login(data.username, data.password).then((success) => {
-        if (success.result) {
-            databasemodule.saveLoggedInUser(data.username).then((result) => {
-                if (result) {
-                    socket.username = data.username;
-                    socket.id = data.userid;
-                    socket.colorCode = data.color;
-                    socket.join("AllChat");
-                    users.push(socket); // Add client to active users
-                    // Build the message object
-                    userConnectedMessage = buildLoginMessage(socket);
-                    if (success.profilepic) {
-                        base64buffer = Buffer.from(success.profilepic);
-                        userConnectedMessage.profilepic = base64buffer;
-                    }
-                    pub.publish("login_successful", { message: userConnectedMessage });
+            usernameValid = proofCredential(data.username, "U");
+            passwordValid = proofCredential(data.password, "P");
+            if (usernameValid != "valid" && passwordValid == "valid") {
+                socket.emit("login_failed", { text: usernameValid });
+                return;
+            }
+            if (usernameValid == "valid" && passwordValid != "valid") {
+                socket.emit("login_failed", { text: passwordValid });
+                return;
+            }
+            if (usernameValid != "valid" && passwordValid != "valid") {
+                socket.emit("login_failed", { text: "Username and password are incorrect" });
+                return;
+            }
+            databasemodule.login(data.username, data.password).then((success) => {
+                if (success.result) {
+                    databasemodule.saveLoggedInUser(data.username).then((result) => {
+                        if (result) {
+                            socket.username = data.username;
+                            socket.id = data.userid;
+                            socket.colorCode = data.color;
+                            socket.join("AllChat");
+                            users.push(socket); // Add client to active users
+                            // Build the message object
+                            userConnectedMessage = buildLoginMessage(socket);
+                            if (success.profilepic) {
+                                base64buffer = Buffer.from(success.profilepic);
+                                userConnectedMessage.profilepic = base64buffer;
+                            }
+                            pub.publish("login_successful", { message: userConnectedMessage });
+                        } else {
+                            socket.emit("login_failed", { text: "Login failed due to database issues" });
+                        }
+                    });
                 } else {
-                    socket.emit("login_failed", { text: "Login failed due to database issues" });
+                    socket.emit("login_failed", { text: "User not registered" });
                 }
             });
-        } else {
-            socket.emit("login_failed", { text: "User not registered" });
         }
     });
 }
