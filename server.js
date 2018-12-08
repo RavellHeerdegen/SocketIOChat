@@ -500,17 +500,18 @@ function buildTextMessage(socket, message, room) {
  * Builds the client-sided list of active users to build private chats with
  */
 function buildOnlineUsersList() {
-    databasemodule.getAllLoggedInUsers().then((result) => {
-        if (!result.status) {
-            console.log(result.rows);
-        } else {
-            loggedinusers = result.rows;
-            loggedinusersJSON = JSON.parse(loggedinusers);
-            socket.emit("clientlog", {
-                log: loggedinusers
-            });
-        }
-    });
+    // databasemodule.getAllLoggedInUsers().then((result) => {
+    //     if (!result.status) {
+    //         console.log(result.rows);
+    //     } else {
+    //         loggedinusers = result.rows;
+    //         loggedinusersJSON = JSON.parse(loggedinusers);
+    //         socket.emit("clientlog", {
+    //             log: loggedinusers
+    //         });
+    //     }
+    // });
+    // ----------------------------------------------------------
     // content = "";
     // for (i = 0; i < users.length; i++) {
     //     content = content +
