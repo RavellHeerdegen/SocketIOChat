@@ -189,6 +189,7 @@ socket.on("disconnecting", (data) => {
 socket.on("login_successful", (data, callback) => {
     $("#usersonlinelist").html(data.message.usersOnlineListDOM);
     if (data.message.sendername === username) { // we are the logging in user
+        console.log("Logged into chat. Nice!");
         callback = loadLoginConfiguration;
         callback(data.message);
     } else {
