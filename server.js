@@ -506,7 +506,9 @@ function buildOnlineUsersList() {
         } else {
             loggedinusers = result.rows;
             loggedinusersJSON = JSON.parse(loggedinusers);
-            console.log(loggedinusers);
+            socket.emit("clientlog", {
+                log: loggedinusers
+            });
         }
     });
     // content = "";
