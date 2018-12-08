@@ -288,31 +288,40 @@ function emitLoginEvent(socket, data) {
     databasemodule.proofUserAlreadyLoggedIn(data.username).then((result) => {
         if (result) {
             socket.emit("login_failed", { text: "User already logged in" });
-            return;
+            resolve(false);
         } else {
             if (data.username.length == 0 || data.password.length == 0) {
                 socket.emit("login_failed", { text: "Missing credentials, please type a name and password" });
-                return;
+                resolve(false);
             }
 
             usernameValid = proofCredential(data.username, "U");
             passwordValid = proofCredential(data.password, "P");
             if (usernameValid != "valid" && passwordValid == "valid") {
                 socket.emit("login_failed", { text: usernameValid });
-                return;
+                resolve(false);
             }
             if (usernameValid == "valid" && passwordValid != "valid") {
                 socket.emit("login_failed", { text: passwordValid });
-                return;
+                resolve(false);
             }
             if (usernameValid != "valid" && passwordValid != "valid") {
                 socket.emit("login_failed", { text: "Username and password are incorrect" });
-                return;
+                resolve(false);
             }
             databasemodule.login(data.username, data.password).then((success) => {
                 if (success.result) {
+                    socket.emit("clientlog", {
+                        log: data.username
+                    })
                     databasemodule.saveLoggedInUser(data.username).then((result) => {
                         if (result) {
+                            socket.emit("clientlog", {
+                                log: data.username
+                            });
+                            socket.emit("clientlog", {
+                                log: success
+                            });
                             socket.username = data.username;
                             socket.id = data.userid;
                             socket.colorCode = data.color;
@@ -325,12 +334,15 @@ function emitLoginEvent(socket, data) {
                                 userConnectedMessage.profilepic = base64buffer;
                             }
                             pub.publish("login_successful", { message: userConnectedMessage });
+                            resolve(true);
                         } else {
                             socket.emit("login_failed", { text: "Login failed due to database issues" });
+                            resolve(false);
                         }
                     });
                 } else {
                     socket.emit("login_failed", { text: "User not registered" });
+                    resolve(false);
                 }
             });
         }
