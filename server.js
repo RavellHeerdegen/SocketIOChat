@@ -113,7 +113,7 @@ sub.on("message", (channel, message) => {
         let data = JSON.parse(message); //TODO when disconnecting it is not an object its an string {name:petergit } vs `peter`
         users.forEach(socket => {
             socket.emit("clientlog", {
-                log: data
+                log: data[0]
             });
         });
 
@@ -122,7 +122,7 @@ sub.on("message", (channel, message) => {
             case "login_successful":
                 users.forEach(socket => {
                     socket.emit("login_successful", {
-                        message: data
+                        message: data[0]
                     });
                 });
                 break;
