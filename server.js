@@ -10,7 +10,7 @@ const redis = require("redis");
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const { URL } = require("url");
-const redisDBstring = "rediss://admin:ODRGZNKNYSESGVWU@portal60-11.bmix-eude-yp-4d6848cd-1f90-4625-9a84-c607ba7fa228.220726745.composedb.com:18794";
+const redisDBstring = "rediss://admin:ODRGZNKNYSESGVWU@portal57-10.bmix-eude-yp-4d6848cd-1f90-4625-9a84-c607ba7fa228.220726745.composedb.com:18794";
 let sub = redis.createClient(redisDBstring, {
     tls: { servername: new URL(redisDBstring).hostname }
 });
