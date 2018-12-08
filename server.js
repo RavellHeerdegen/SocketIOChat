@@ -14,7 +14,7 @@ var sub = new Redis(18794, "rediss://admin:ODRGZNKNYSESGVWU@portal60-11.bmix-eud
 /* Initialisation of all modules and prototypes START */
 const express = require("express"); //Get module express
 const app = express(); // Our app is an express application
-const ss = require('socket.io-stream'); // for streaming files
+// const ss = require('socket.io-stream'); // for streaming files
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 
@@ -118,28 +118,28 @@ io.on("connection", (socket) => {
 
     //SUB METHODS END
 
-    ss(socket).on('file_upload', (stream, data) => {
+    // ss(socket).on('file_upload', (stream, data) => {
 
-        // users.forEach(user => {
-        //     rooms = Object.keys(socket.rooms);
-        //     if (rooms.find(room => room === data.room.roomname)) {
-        //         clientstream = ss.createStream();
+    //     // users.forEach(user => {
+    //     //     rooms = Object.keys(socket.rooms);
+    //     //     if (rooms.find(room => room === data.room.roomname)) {
+    //     //         clientstream = ss.createStream();
 
-        //         date = new Date();
+    //     //         date = new Date();
 
-        //         ss(user).emit('file_upload', clientstream, {
-        //             sender: data.sender,
-        //             colorCode: data.colorcode,
-        //             timeStamp: date.getDay() + "." + date.getMonth() + "." + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes(),
-        //             name: data.name,
-        //             size: data.size,
-        //             type: data.type,
-        //             room: data.room
-        //         });
-        //         stream.pipe(clientstream);
-        //     }
-        // });
-    });
+    //     //         ss(user).emit('file_upload', clientstream, {
+    //     //             sender: data.sender,
+    //     //             colorCode: data.colorcode,
+    //     //             timeStamp: date.getDay() + "." + date.getMonth() + "." + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes(),
+    //     //             name: data.name,
+    //     //             size: data.size,
+    //     //             type: data.type,
+    //     //             room: data.room
+    //     //         });
+    //     //         stream.pipe(clientstream);
+    //     //     }
+    //     // });
+    // });
 
     socket.on("profile_pic_upload", (data) => {
         var buffer = Buffer.from(data.file, "binary");
