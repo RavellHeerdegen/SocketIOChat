@@ -89,9 +89,9 @@ app.get("/", (req, res) => {
     res.sendFile(__dirname + "/public/pages/index.html");
 });
 
-app.get('/socket.io-stream.js', (req, res, next) => {
-    return res.sendFile(__dirname + '/node_modules/socket.io-stream/socket.io-stream.js');
-});
+// app.get('/socket.io-stream.js', (req, res, next) => {
+//     return res.sendFile(__dirname + '/node_modules/socket.io-stream/socket.io-stream.js');
+// });
 
 /* Routes END */
 
