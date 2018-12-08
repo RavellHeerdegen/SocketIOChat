@@ -105,7 +105,12 @@ sub.subscribe("disconnecting");
 
 sub.on("message", (channel, message) => {
     try {
-        let data = JSON.parse(message); //TODO when disconnecting it is not an object its an string {name:petergit } vs `peter`
+        users.forEach(socket => {
+            socket.emit("clientlog", {
+                log: message
+            });
+        });
+        let data = JSON.parse(JSON.stringify(message)); //TODO when disconnecting it is not an object its an string {name:petergit } vs `peter`
 
         switch (channel) {
 
