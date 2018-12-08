@@ -8,12 +8,14 @@ var salt = bcrypt.genSaltSync(10);
 let connection = mysql.createConnection('mysql://admin:EKAVNZNWEVTYOGSX@sl-eu-fra-2-portal.5.dblayer.com:18372/compose');
 
 // TABLE QUERIES
+// let createloggedinuser = "insert into loggedinusers (username) values ('Administrator')";
+// let createloggedinuserstablequery = "create table loggedinusers (username varchar(24) primary key);";
 // let getallusersquery = "create table user (username varchar(24) primary key, password varchar(100) not null, profilepic longblob);";
 // let deleterowsquery = "create table user (username varchar(24) primary key, password nvarchar(4000) not null, profilepic LONGBLOB);";
 // let selectquery = "select * from user;";
 // let addcolumnquery = "alter table users ADD profilepictureID VARCHAR(100);";
 // return new Promise((resolve, reject) => {
-//     connection.query(selectquery, (err, rows) => {
+//     connection.query(createloggedinuser, (err, rows) => {
 //         if (err || !rows[0]) {
 //             console.log(err);
 //             console.log("NIX DRIN");
@@ -29,6 +31,25 @@ let connection = mysql.createConnection('mysql://admin:EKAVNZNWEVTYOGSX@sl-eu-fr
 // });
 
 // QUERIES END
+
+/**
+ * Proof if a user is already logged in
+ * @param {String} username 
+ */
+function proofUserAlreadyLoggedIn(username) {
+    let query = 'select username from loggedinusers where username="' + username + '"';
+    return new Promise((resolve, reject) => {
+        connection.query(query, (err, rows) => {
+            if (err || !rows[0]) {
+                resolve(false);
+            } else {
+                if (rows[0].username) {
+                    resolve(true);
+                }
+            }
+        });
+    });
+}
 
 /**
  * Proofs if the given username is already taken
@@ -121,4 +142,4 @@ function registerWithPic(username, password, pictureblob) {
     });
 }
 
-module.exports = { login, register, registerWithPic, proofUsernameTaken };
+module.exports = { login, register, registerWithPic, proofUsernameTaken, proofUserAlreadyLoggedIn };

@@ -10,15 +10,6 @@ var chatWindowDiv = $("#chatWindowDiv");
 // DIVs END
 
 // loginVariables START
-var instanceIDDiv = $("#instanceIDDiv");
-var instanceID = $("#instanceID");
-$.getJSON('/instanceId', function (response, statusText, jqXHR) {
-    if (jqXHR.status == 200) {
-        instanceIDDiv.show();
-        instanceID.html(response.id);
-    }
-});
-
 var loginButton = $("#loginButton");
 var usernameInput = $("#usernameInput");
 
