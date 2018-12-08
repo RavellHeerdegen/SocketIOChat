@@ -1,25 +1,20 @@
 /* JAN POHL 761383, RAVELL HEERDEGEN 761330 */
 
-var Redis = require('ioredis');
-// var sub = new Redis({
-//     tls: {
-//         host: "rediss://admin:ODRGZNKNYSESGVWU@portal60-11.bmix-eude-yp-4d6848cd-1f90-4625-9a84-c607ba7fa228.220726745.composedb.com",
-//         port: 18794
-//     }
-// });
-var pub = new Redis(18794, "rediss://admin:ODRGZNKNYSESGVWU@portal60-11.bmix-eude-yp-4d6848cd-1f90-4625-9a84-c607ba7fa228.220726745.composedb.com");
-
-var sub = new Redis(18794, "rediss://admin:ODRGZNKNYSESGVWU@portal60-11.bmix-eude-yp-4d6848cd-1f90-4625-9a84-c607ba7fa228.220726745.composedb.com");
-
 /* Initialisation of all modules and prototypes START */
 const express = require("express"); //Get module express
 const app = express(); // Our app is an express application
 // const ss = require('socket.io-stream'); // for streaming files
+
+// For Redis
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
-
-
-// var sessionStore = new RedisStore({ client: rClient });
+var redis = require('redis');
+var RedisStore = require('connect-redis')(express);
+var rClient = redis.createClient();
+var sub = redis.createClient();
+var pub = redis.createClient();
+var sessionStore = new RedisStore({ client: rClient });
+// For Redis END
 
 // Modules start
 const moodmodule = require("./modules/mood_module");
@@ -42,19 +37,19 @@ app.use('/js', express.static(__dirname + '/node_modules/socket.io-stream')); //
 // app.use(helmet());
 // app.enable('trust proxy'); // also works behind reverse proxies (load balancers)
 // app.use(express_enforces_ssl());
-// app.use(
-//     session({
-//         key: 'jsessionid',
-//         secret: 'super-chat-bros',
-//         cookie: {
-//             maxAge: 24 * 60 * 60 * 1000, // sets the cookie age to one day
-//             secure: true
-//         },
-//         saveUninitialized: true,
-//         resave: false,
-//         store: sessionStore
-//     })
-// );
+app.use(
+    session({
+        key: 'JSESSIONID',
+        secret: 'super-chat-bros',
+        cookie: {
+            maxAge: 24 * 60 * 60 * 1000, // sets the cookie age to one day
+            secure: true
+        },
+        saveUninitialized: true,
+        resave: false,
+        store: sessionStore
+    })
+);
 
 // Server variables START
 // var users = []; // Sockets
@@ -275,7 +270,7 @@ function emitLoginEvent(socket, data) {
 
     databasemodule.proofUserAlreadyLoggedIn(data.username).then((result) => {
         if (result) {
-            socket.emit("login_failed", { text: "User already logged in"});
+            socket.emit("login_failed", { text: "User already logged in" });
             return;
         }
     });
@@ -317,7 +312,7 @@ function emitLoginEvent(socket, data) {
             // io.in("AllChat").emit("login_successful", { // emit to all users in allchat-room
             //     message: userConnectedMessage,
             // });
-            pub.publish("login_successful", {message: userConnectedMessage});
+            pub.publish("login_successful", { message: userConnectedMessage });
         } else {
             socket.emit("login_failed", { text: "User not registered" });
         }
