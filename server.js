@@ -110,8 +110,10 @@ sub.on("message", (channel, message) => {
         switch (channel) {
 
             case "login_successful":
-                io.in("AllChat").emit("login_successful", {
-                    message: data.message
+                users.forEach(socket => {
+                    socket.emit("login_successful", {
+                        message: data.message
+                    });
                 });
                 break;
 
@@ -319,9 +321,6 @@ function emitLoginEvent(socket, data) {
                                         base64buffer = Buffer.from(success.profilepic);
                                         userConnectedMessage.profilepic = base64buffer;
                                     }
-                                    socket.emit("clientlog", {
-                                        log: "Bin vorm publishen ist alles gut gegangen"
-                                    });
                                     pub.publish("login_successful", { message: userConnectedMessage });
                                 } else {
                                     socket.emit("login_failed", { text: "Login failed due to database issues" });
