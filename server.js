@@ -106,17 +106,14 @@ sub.subscribe("disconnecting");
 sub.on("message", (channel, message) => {
     try {
         let data = JSON.parse(message); //TODO when disconnecting it is not an object its an string {name:petergit } vs `peter`
-        io.in("AllChat").emit("clientlog", {
-            log: "Ich bin im sub.on"
-        });
+
         switch (channel) {
 
             case "login_successful":
-                io.in("AllChat").emit("clientlog", {
-                    log: "Ich bin im case login_successful"
-                });
-                io.in("AllChat").emit("login_successful", {
-                    message: data
+                users.forEach(socket => {
+                    socket.emit("login_successful", {
+                        message: data
+                    });
                 });
                 break;
 

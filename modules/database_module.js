@@ -17,7 +17,7 @@ let connection = mysql.createConnection('mysql://admin:EKAVNZNWEVTYOGSX@sl-eu-fr
 // let getallloggedinusers = "select * from loggedinusers;";
 // let addcolumnquery = "alter table users ADD profilepictureID VARCHAR(100);";
 // return new Promise((resolve, reject) => {
-//     connection.query(createloggedinuser, (err, rows) => {
+//     connection.query(deleteallloggedinusers, (err, rows) => {
 //         if (err || !rows[0]) {
 //             console.log(err);
 //             console.log("NIX DRIN");
