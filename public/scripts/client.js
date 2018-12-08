@@ -397,99 +397,99 @@ function createPrivateRoom(otheruser) {
  * @param {File-Input Event} event the FileList-event to handle chosen files 
  */
 function fileUpload(event) {
-    // file = event.target.files[0];
-    // if (file) {
-    //     filestream = ss.createStream();
-    //     ss(socket).emit('file_upload', filestream, {
-    //         name: file.name,
-    //         size: file.size,
-    //         type: file.type,
-    //         room: activeroom,
-    //         sender: username,
-    //         colorcode: colorCode
-    //     });
+    file = event.target.files[0];
+    if (file) {
+        filestream = ss.createStream();
+        ss(socket).emit('file_upload', filestream, {
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            room: activeroom,
+            sender: username,
+            colorcode: colorCode
+        });
 
-    //     blobStream = ss.createBlobReadStream(file); // for chunking and bidirectional file transfer
+        blobStream = ss.createBlobReadStream(file); // for chunking and bidirectional file transfer
 
-    //     // Update progress bar
-    //     progressbarDiv.show();
-    //     progressbar.css("display", "block");
-    //     size = 0;
+        // Update progress bar
+        progressbarDiv.show();
+        progressbar.css("display", "block");
+        size = 0;
 
-    //     blobStream.on("data", (chunk) => {
-    //         size += chunk.length;
-    //         progressbar.css("width", size / file.size * 100 + "%");
-    //     });
-    //     blobStream.pipe(filestream);
-    // }
+        blobStream.on("data", (chunk) => {
+            size += chunk.length;
+            progressbar.css("width", size / file.size * 100 + "%");
+        });
+        blobStream.pipe(filestream);
+    }
 }
 
 /**
  * Receiving a file upload event and printing the message to the chat-Window
  */
-// ss(socket).on("file_upload", (stream, data) => {
-//     let binaryData = [];
+ss(socket).on("file_upload", (stream, data) => {
+    let binaryData = [];
 
-//     stream.on("error", (error) => {
-//         console.log(error);
-//         if (data.sender === username) {
-//             progressbar.css("width", "0%");
-//             progressbar.css("display", "none");
-//             progressbarDiv.hide();
-//         }
-//     })
+    stream.on("error", (error) => {
+        console.log(error);
+        if (data.sender === username) {
+            progressbar.css("width", "0%");
+            progressbar.css("display", "none");
+            progressbarDiv.hide();
+        }
+    })
 
-//     stream.on("data", (chunk) => {
-//         binaryData.push.apply(binaryData, chunk); //Put chunks together
-//     });
+    stream.on("data", (chunk) => {
+        binaryData.push.apply(binaryData, chunk); //Put chunks together
+    });
 
-//     stream.on("end", () => {
-//         let blob = new Blob([new Uint8Array(binaryData)]); //Blob is an object piece of the file
-//         let fileUrl = URL.createObjectURL(blob);
+    stream.on("end", () => {
+        let blob = new Blob([new Uint8Array(binaryData)]); //Blob is an object piece of the file
+        let fileUrl = URL.createObjectURL(blob);
 
-//         fileDiv = "";
-//         // FIlemapping
-//         if (data.type.includes("image")) {
-//             fileDiv = "<div class='row' style='margin-bottom: 6px; justify-content: flex-end'>" +
-//                 "<div style='display: flex; justify-content: center; padding-right: 16px'>" + "<img src='" + fileUrl + "' style='width: 200px; height: 200px'></div>" +
-//                 "</div>" +
-//                 "<div class='row'>" +
-//                 "<div class='fileNameSpan' style='padding-left: 0'>" + data.name + "</div>" +
-//                 "<div style='padding-left: 0; width: 80px; margin-right: 16px;'>" +
-//                 "<a href='" + fileUrl + "' download='" + data.name + "' class='btn' style='width: 100%; background: #43a047'><i class='material-icons' style='color: lightgrey'>get_app</i></a>" +
-//                 "</div>" +
-//                 "</div>";
-//         } else {
-//             fileDiv =
-//                 "<div class='row'>" +
-//                 "<div style='display: flex; justify-content: center; padding-right: 0; width: 60px'>" + "<i class='material-icons fileIncomeIcon'>input</i>" + "</div>" +
-//                 "<div class='fileNameSpan' style='padding-left: 0'>" + data.name + "</div>" +
-//                 "<div style='padding-left: 0; width: 80px; margin-right: 16px;'>" +
-//                 "<a href='" + fileUrl + "' download='" + data.name + "' class='btn' style='width: 100%; background: #43a047'><i class='material-icons' style='color: lightgrey'>get_app</i></a>" +
-//                 "</div>" +
-//                 "</div>";
-//         }
+        fileDiv = "";
+        // FIlemapping
+        if (data.type.includes("image")) {
+            fileDiv = "<div class='row' style='margin-bottom: 6px; justify-content: flex-end'>" +
+                "<div style='display: flex; justify-content: center; padding-right: 16px'>" + "<img src='" + fileUrl + "' style='width: 200px; height: 200px'></div>" +
+                "</div>" +
+                "<div class='row'>" +
+                "<div class='fileNameSpan' style='padding-left: 0'>" + data.name + "</div>" +
+                "<div style='padding-left: 0; width: 80px; margin-right: 16px;'>" +
+                "<a href='" + fileUrl + "' download='" + data.name + "' class='btn' style='width: 100%; background: #43a047'><i class='material-icons' style='color: lightgrey'>get_app</i></a>" +
+                "</div>" +
+                "</div>";
+        } else {
+            fileDiv =
+                "<div class='row'>" +
+                "<div style='display: flex; justify-content: center; padding-right: 0; width: 60px'>" + "<i class='material-icons fileIncomeIcon'>input</i>" + "</div>" +
+                "<div class='fileNameSpan' style='padding-left: 0'>" + data.name + "</div>" +
+                "<div style='padding-left: 0; width: 80px; margin-right: 16px;'>" +
+                "<a href='" + fileUrl + "' download='" + data.name + "' class='btn' style='width: 100%; background: #43a047'><i class='material-icons' style='color: lightgrey'>get_app</i></a>" +
+                "</div>" +
+                "</div>";
+        }
 
-//         userMessage = new Message;
-//         userMessage.sendername = data.sender;
-//         userMessage.messageHead = "<div class='headMessageDiv' style='" + "color:" + data.colorCode + "'>" + "<p class='nameMessageTag'>" + userMessage.sendername + "</p>" + "</div>";
-//         userMessage.messageBody =
-//             "<div class='bodyMessageDiv'>" +
-//             fileDiv +
-//             "</div>";
-//         userMessage.messageFooter = "<div class='footerMessageDiv'>" + data.timeStamp + "</div>";
-//         userMessage.room = new Room;
-//         userMessage.room.roomname = data.room.roomname;
+        userMessage = new Message;
+        userMessage.sendername = data.sender;
+        userMessage.messageHead = "<div class='headMessageDiv' style='" + "color:" + data.colorCode + "'>" + "<p class='nameMessageTag'>" + userMessage.sendername + "</p>" + "</div>";
+        userMessage.messageBody =
+            "<div class='bodyMessageDiv'>" +
+            fileDiv +
+            "</div>";
+        userMessage.messageFooter = "<div class='footerMessageDiv'>" + data.timeStamp + "</div>";
+        userMessage.room = new Room;
+        userMessage.room.roomname = data.room.roomname;
 
-//         buildChatItem(userMessage);
+        buildChatItem(userMessage);
 
-//         if (data.sender === username) {
-//             progressbar.css("width", "0%");
-//             progressbar.css("display", "none");
-//             progressbarDiv.hide();
-//         }
-//     });
-// });
+        if (data.sender === username) {
+            progressbar.css("width", "0%");
+            progressbar.css("display", "none");
+            progressbarDiv.hide();
+        }
+    });
+});
 
 /* Functions END */
 

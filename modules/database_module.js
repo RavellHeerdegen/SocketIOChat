@@ -8,21 +8,22 @@ var salt = bcrypt.genSaltSync(10);
 let connection = mysql.createConnection('mysql://admin:EKAVNZNWEVTYOGSX@sl-eu-fra-2-portal.5.dblayer.com:18372/compose');
 
 // TABLE QUERIES
-// let createloggedinuser = "insert into loggedinusers (username) values ('Administrator')";
+// let createloggedinuser = "insert into loggedinusers (username) values ('Mario')";
 // let createloggedinuserstablequery = "create table loggedinusers (username varchar(24) primary key);";
 // let getallusersquery = "create table user (username varchar(24) primary key, password varchar(100) not null, profilepic longblob);";
 // let deleterowsquery = "create table user (username varchar(24) primary key, password nvarchar(4000) not null, profilepic LONGBLOB);";
 // let selectquery = "select * from user;";
+// let getallloggedinusers = "select * from loggedinusers;";
 // let addcolumnquery = "alter table users ADD profilepictureID VARCHAR(100);";
 // return new Promise((resolve, reject) => {
-//     connection.query(createloggedinuser, (err, rows) => {
+//     connection.query(getallloggedinusers, (err, rows) => {
 //         if (err || !rows[0]) {
 //             console.log(err);
 //             console.log("NIX DRIN");
 //             resolve(false);
 //         } else {
 //             if (rows[0]) {
-//                 console.log(rows[0]);
+//                 console.log(rows);
 //                 console.log("PAINIS");
 //                 resolve(true);
 //             }
@@ -31,6 +32,31 @@ let connection = mysql.createConnection('mysql://admin:EKAVNZNWEVTYOGSX@sl-eu-fr
 // });
 
 // QUERIES END
+
+/**
+ * Returns all logged in users from the loggedinusers table
+ */
+function getAllLoggedInUsers() {
+    let query = 'select * from loggedinusers;';
+    let loggedinusers = {
+        rows,
+        status: false
+    };
+    return new Promise((resolve, reject) => {
+        connection.query(query, (err, rows) => {
+            if (err || rows.length === 0) {
+                loggedinusers.rows = err;
+                resolve(loggedinusers);
+            } else {
+                if (rows.length > 0) {
+                    loggedinusers.rows = rows;
+                    loggedinusers.status = true;
+                    resolve(loggedinusers);
+                }
+            }
+        });
+    });
+}
 
 /**
  * Proof if a user is already logged in
@@ -102,6 +128,44 @@ function login(username, password) {
 }
 
 /**
+ * Saves a user to the database of logged in users
+ * @param {Stirng} username 
+ */
+function saveLoggedInUser(username) {
+    return new Promise((resolve, reject) => {
+        if (username) {
+            let query = 'insert into loggedinusers (username) values ("' + username + '");';
+            return connection.query(query, (err) => {
+                if (err) {
+                    resolve(false);
+                } else {
+                    resolve(true);
+                }
+            });
+        } else resolve(false);
+    });
+}
+
+/**
+ * Deletes a logged in user from the database of logged in users
+ * @param {Stirng} username 
+ */
+function deleteLoggedInUser(username) {
+    return new Promise((resolve, reject) => {
+        if (username) {
+            let query = 'delete from loggedinusers where username = "' + username + '";';
+            return connection.query(query, (err) => {
+                if (err) {
+                    resolve(false);
+                } else {
+                    resolve(true);
+                }
+            });
+        } else resolve(false);
+    });
+}
+
+/**
  * Registers a user in the database and returns the registration result
  * @param {Stirng} username 
  * @param {String} password 
@@ -142,4 +206,4 @@ function registerWithPic(username, password, pictureblob) {
     });
 }
 
-module.exports = { login, register, registerWithPic, proofUsernameTaken, proofUserAlreadyLoggedIn };
+module.exports = { login, saveLoggedInUser, deleteLoggedInUser, register, registerWithPic, proofUsernameTaken, proofUserAlreadyLoggedIn, getAllLoggedInUsers };
