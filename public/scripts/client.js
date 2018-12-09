@@ -279,6 +279,9 @@ socket.on("clientlog", (data) => {
     console.log(data.log);
 });
 
+/**
+ * Handles the profile-picture-loaded event of a client and displays the result to the chat window
+ */
 socket.on("profilepic_loaded", (data) => {
     let decodedbase64 = new TextDecoder("utf-8").decode(new Uint8Array(data.image));
     $("#headerImg").attr("src", "data:image/png;base64," + decodedbase64);
@@ -298,14 +301,6 @@ function loadLoginConfiguration(data) {
     rooms.push(activeroom);
     chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
     $("#loggedInUserName").html(data.loggedInAsString);
-    // If profile picture is set
-    // if (data.profilepic !== "") {
-    //     let decodedbase64 = new TextDecoder("utf-8").decode(new Uint8Array(data.profilepic));
-    //     $("#headerImg").attr("src", "data:image/png;base64," + decodedbase64);
-    //     $("#headerImg").css("border", "3px solid " + colorCode);
-    // } else {
-    //     $("#headerImg").hide();
-    // }
     buildChatItem(data);
     loginDiv.hide();
     chatDiv.show();
@@ -357,7 +352,6 @@ function buildChatItem(data) {
  * Reloads the page so the user gets unregistered and lands on the login page
  */
 function loadLogoutConfiguration() {
-    socket.emit("disconnecting");
     location.reload(true);
 }
 
@@ -441,7 +435,7 @@ ss(socket).on("file_upload", (stream, data) => {
     let binaryData = [];
 
     stream.on("error", (error) => {
-        console.log(error);
+        $("#chatWindow").html($("#chatWindow").html() + error);
         if (data.sender === username) {
             progressbar.css("width", "0%");
             progressbar.css("display", "none");
@@ -458,7 +452,7 @@ ss(socket).on("file_upload", (stream, data) => {
         let fileUrl = URL.createObjectURL(blob);
 
         fileDiv = "";
-        // FIlemapping
+        // Filemapping
         if (data.type.includes("image")) {
             fileDiv = "<div class='row' style='margin-bottom: 6px; justify-content: flex-end'>" +
                 "<div style='display: flex; justify-content: center; padding-right: 16px'>" + "<img src='" + fileUrl + "' style='width: 200px; height: 200px'></div>" +

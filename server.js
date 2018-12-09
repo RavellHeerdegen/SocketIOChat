@@ -96,7 +96,7 @@ app.get('/socket.io-stream.js', (req, res, next) => {
 
 /* Initialisation of all modules and prototypes END */
 
-// SUB METHODS START
+// SUB METHODS START - these are globally active for every instance started
 
 sub.subscribe("send");
 sub.subscribe("login_successful");
@@ -106,31 +106,37 @@ sub.subscribe("disconnecting");
 sub.on("message", (channel, message) => {
     try {
 
-        console.log(message);
         switch (channel) {
 
             case "login_successful":
-                users.forEach(socket => {
-                    socket.emit("login_successful", {
-                        message: JSON.parse(message)
-                    });
+                io.in("AllChat").emit("login_successful", {
+                    message: JSON.parse(message)
+                })
+                break;
+            case "disconnecting":
+                io.in("AllChat").emit("disconnecting", {
+                    message: JSON.parse(message)
                 });
                 break;
-
-            case "disconnecting":
-                users.forEach(socket => {
-                    socket.emit("disconnecting", {
-                        message: JSON.parse(message)
-                    })
+            case "send":
+                jsonobject = JSON.parse(message);
+                io.in(jsonobject.room).emit("send", {
+                    message: jsonobject.message
                 });
-
+                break;
+            case "create_private_room":
+                jsonobject = JSON.parse(message);
+                io.in(jsonobject.roomname).emit("established_private_room", {
+                    room: jsonobject
+                });
+                break;
         }
     } catch (err) {
         console.log(err);
     }
 });
 
-// SUB METHODS END
+// SUB METHODS END ----------------------------------------------------------
 
 /* IO Handlings (user connects to server) START */
 
@@ -141,25 +147,27 @@ io.on("connection", (socket) => {
 
     ss(socket).on('file_upload', (stream, data) => {
 
-        users.forEach(user => {
-            rooms = Object.keys(socket.rooms);
-            if (rooms.find(room => room === data.room.roomname)) {
-                clientstream = ss.createStream();
 
-                date = new Date();
 
-                ss(user).emit('file_upload', clientstream, {
-                    sender: data.sender,
-                    colorCode: data.colorcode,
-                    timeStamp: date.getDay() + "." + date.getMonth() + "." + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes(),
-                    name: data.name,
-                    size: data.size,
-                    type: data.type,
-                    room: data.room
-                });
-                stream.pipe(clientstream);
-            }
-        });
+        // users.forEach(user => {
+        //     rooms = Object.keys(socket.rooms);
+        //     if (rooms.find(room => room === data.room.roomname)) {
+        //         clientstream = ss.createStream();
+
+        //         date = new Date();
+
+        //         ss(user).emit('file_upload', clientstream, {
+        //             sender: data.sender,
+        //             colorCode: data.colorcode,
+        //             timeStamp: date.getDay() + "." + date.getMonth() + "." + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes(),
+        //             name: data.name,
+        //             size: data.size,
+        //             type: data.type,
+        //             room: data.room
+        //         });
+        //         stream.pipe(clientstream);
+        //     }
+        // });
     });
 
     socket.on("profile_pic_upload", (data) => {
@@ -199,20 +207,18 @@ io.on("connection", (socket) => {
      */
     socket.on("create_private_room", (data) => {
 
-        // ownUsername = socket.username;
-        // otherUsername = data.othername;
-        // room = new Room;
-        // room.roomname = ownUsername + otherUsername;
-        // room.sendername = ownUsername; //Fritz
-        // room.recipientname = otherUsername; //Ursula
+        ownUsername = socket.username;
+        otherUsername = data.othername;
+        room = new Room;
+        room.roomname = ownUsername + otherUsername;
+        room.sendername = ownUsername; //Fritz
+        room.recipientname = otherUsername; //Ursula
 
-        // socket.join(room.roomname);
-        // othersocket = users.find(f => f.username === otherUsername);
-        // othersocket.join(room.roomname);
+        socket.join(room.roomname);
+        othersocket = users.find(f => f.username === otherUsername);
+        othersocket.join(room.roomname);
 
-        // io.in(room.roomname).emit("established_private_room", {
-        //     room: room
-        // });
+        pub.publish("create_private_room", JSON.stringify(room));
     });
 
     // Handles the updatechattabs event and delegates to build the tabs of a specific user
@@ -229,9 +235,14 @@ io.on("connection", (socket) => {
         room = data.room;
         buildTextMessage(socket, message, room).then((result) => {
             userMessage = result;
-            io.in(room).emit("send", {
-                message: userMessage
-            });
+            // io.in(room).emit("send", {
+            //     message: userMessage
+            // });
+            messageToSend = {
+                message: userMessage,
+                room: room
+            }
+            pub.publish("send", JSON.stringify(messageToSend));
         });
     });
 
@@ -245,7 +256,7 @@ io.on("connection", (socket) => {
 
 });
 
-/* IO Handlings END */
+/* IO Handlings END ------------------------------------------------------------------- */
 
 /* Callbacks and Event Handlings START */
 
@@ -315,24 +326,33 @@ function emitLoginEvent(socket, data) {
                 else {
                     databasemodule.login(data.username, data.password).then((success) => {
                         if (success.result) {
-                            databasemodule.saveLoggedInUser(data.username).then((result) => {
+                            databasemodule.saveLoggedInUser(data.username, data.color).then((result) => {
                                 if (result) {
                                     socket.username = data.username;
                                     socket.id = data.userid;
                                     socket.colorCode = data.color;
                                     socket.join("AllChat");
+
                                     users.push(socket); // Add client to active users
                                     // Build the message object
-                                    userConnectedMessage = buildLoginMessage(socket);
-                                    if (success.profilepic) {
-                                        base64buffer = Buffer.from(success.profilepic);
-                                        // userConnectedMessage.profilepic = base64buffer;
-                                        socket.emit("profilepic_loaded", {
-                                            image: base64buffer,
-                                            colorcode: socket.colorCode
-                                        });
-                                    }
-                                    pub.publish("login_successful", JSON.stringify(userConnectedMessage));
+                                    buildLoginMessage(socket).then(message => {
+                                        if (message === "") {
+                                            socket.emit("clientlog", {
+                                                log: "Failed to login successfully"
+                                            });
+                                        } else {
+                                            if (success.profilepic) {
+                                                base64buffer = Buffer.from(success.profilepic);
+                                                // userConnectedMessage.profilepic = base64buffer;
+                                                socket.emit("profilepic_loaded", {
+                                                    image: base64buffer,
+                                                    colorcode: socket.colorCode
+                                                });
+                                            }
+                                            pub.publish("login_successful", JSON.stringify(message));
+                                        }
+                                    });
+
                                 } else {
                                     socket.emit("login_failed", { text: "Login failed due to database issues" });
                                 }
@@ -424,9 +444,11 @@ function buildLoginMessage(socket) {
     // ---
     userConnectedMessage.chatDOM = "<ul class='list-group' id='chatWindow'></ul>";
     userConnectedMessage.loggedInAsString = userConnectedMessage.sendername;
-    userConnectedMessage.usersOnlineListDOM = buildOnlineUsersList();
-    userConnectedMessage.profilepic = "";
-    return userConnectedMessage;
+    return buildOnlineUsersList().then(result => {
+        userConnectedMessage.profilepic = "";
+        userConnectedMessage.usersOnlineListDOM = result;
+        return userConnectedMessage;
+    });
 }
 
 /**
@@ -445,10 +467,12 @@ function emitLogoutEvent(socket) {
         users.splice(index, 1); // Delete disconnecting user from active users
         databasemodule.deleteLoggedInUser(socket.username).then((result) => {
             if (result) {
-                userDisconnectedMessage = buildLogoutMessage(socket);
-                pub.publish("disconnecting", JSON.stringify(userDisconnectedMessage));
+                buildLogoutMessage(socket).then(message => {
+                    if (message !== "") {
+                        pub.publish("disconnecting", JSON.stringify(message));
+                    }
+                });
             } else {
-                console.log("Error on deleting user of db");
                 console.log(result);
             }
         });
@@ -469,10 +493,12 @@ function buildLogoutMessage(socket) {
     userDisconnectedMessage.messageFooter = "<div class='footerMessageDiv'>" + date.getDay() + "." + date.getMonth() +
         "." + date.getFullYear() + " " + date.getHours() +
         ":" + date.getMinutes() + "</div>";
-    userDisconnectedMessage.usersOnlineListDOM = buildOnlineUsersList();
-    userDisconnectedMessage.room = new Room;
-    userDisconnectedMessage.room.roomname = "AllChat";
-    return userDisconnectedMessage;
+    return buildOnlineUsersList().then(result => {
+        userDisconnectedMessage.usersOnlineListDOM = result;
+        userDisconnectedMessage.room = new Room;
+        userDisconnectedMessage.room.roomname = "AllChat";
+        return userDisconnectedMessage;
+    });
 }
 
 /**
@@ -508,28 +534,24 @@ function buildTextMessage(socket, message, room) {
  * Builds the client-sided list of active users to build private chats with
  */
 function buildOnlineUsersList() {
-    // databasemodule.getAllLoggedInUsers().then((result) => {
-    //     if (!result.status) {
-    //         console.log(result.rows);
-    //     } else {
-    //         loggedinusers = result.rows;
-    //         loggedinusersJSON = JSON.parse(loggedinusers);
-    //         socket.emit("clientlog", {
-    //             log: loggedinusers
-    //         });
-    //     }
-    // });
-    // ----------------------------------------------------------
-    // content = "";
-    // for (i = 0; i < users.length; i++) {
-    //     content = content +
-    //         "<button type='button' class='btn btn-dark' id='" +
-    //         users[i].username + "'" + " onclick='createPrivateRoom(" + users[i].username + ")'" +
-    //         "style='" + "background:" + "linear-gradient(" + "110deg," + users[i].colorCode + " 20%," + "#37474f 20%" + ")" + "'>" +
-    //         users[i].username +
-    //         "</button>";
-    // }
-    // return content;
+
+    return databasemodule.getAllLoggedInUsers().then((result) => {
+        if (!result.status) {
+            return "";
+        } else {
+            loggedinusers = result.rows;
+            onlineusers = "";
+            loggedinusers.forEach(row => {
+                onlineusers = onlineusers +
+                    "<button type='button' class='btn btn-dark' id='" +
+                    row.username + "'" + " onclick='createPrivateRoom(" + row.username + ")'" +
+                    "style='" + "background:" + "linear-gradient(" + "110deg," + row.colorcode + " 20%," + "#37474f 20%" + ")" + "'>" +
+                    row.username +
+                    "</button>";
+            });
+            return onlineusers;
+        }
+    });
 }
 
 /**
@@ -557,7 +579,7 @@ function buildChatTabs(socket, data) {
 
 
 
-/* Callbacks and Event Handlings END */
+/* Callbacks and Event Handlings END ------------------------------------------------------------------- */
 
 /* Object models START */
 
@@ -600,5 +622,5 @@ function Room() {
     this.recipientname = "";
 }
 
-/* Object models END */
+/* Object models END ------------------------------------------------------------------- */
 
