@@ -47,7 +47,6 @@ app.use(
         secret: 'super-chat-bros',
         cookie: {
             maxAge: 24 * 60 * 60 * 1000, // sets the cookie age to one day
-            secure: true
         },
         saveUninitialized: true,
         resave: false
