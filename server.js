@@ -41,17 +41,23 @@ app.use('/js', express.static(__dirname + '/node_modules/socket.io-stream')); //
 // app.use(helmet());
 // app.enable('trust proxy'); // also works behind reverse proxies (load balancers)
 // app.use(express_enforces_ssl());
-app.use(
-    session({
-        key: 'JSESSIONID',
-        secret: 'super-chat-bros',
-        cookie: {
-            maxAge: 24 * 60 * 60 * 1000, // sets the cookie age to one day
-        },
-        saveUninitialized: true,
-        resave: false
-    })
-);
+
+// HANDLE SESSION CONFIGURATION
+var session = {
+    key: 'JSESSIONID',
+    secret: 'super-chat-bros',
+    cookie: {},
+    saveUninitialized: true,
+    resave: false
+};
+if (app.get('env') === 'production') {
+    app.set('trust proxy', 1) // trust first proxy
+    session.cookie.secure = true // serve secure cookies
+}
+
+app.use(session(session));
+// HANDLE SESSION CONFIGURATION END
+
 
 
 // Server variables START
