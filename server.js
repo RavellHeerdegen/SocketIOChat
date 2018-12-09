@@ -47,7 +47,7 @@ var session = {
     key: 'JSESSIONID',
     secret: 'super-chat-bros',
     cookie: {},
-    saveUninitialized: true,
+    saveUninitialized: false,
     resave: false
 };
 if (app.get('env') === 'production') {
