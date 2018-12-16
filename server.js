@@ -131,7 +131,7 @@ sub.on("message", (channel, message) => {
                 });
                 break;
             case "reconnect_successful":
-                socket.emit("reconnect_successful", {
+                io.in("AllChat").emit("reconnect_successful", {
                     message: JSON.parse(message)
                 });
                 break;
