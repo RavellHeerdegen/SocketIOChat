@@ -77,6 +77,7 @@ const session = express_session({
 });
 
 app.use(session);
+app.set('trust proxy', 1);//Trust load balancer
 // HANDLE SESSION CONFIGURATION END
 
 const io = require("socket.io")(server); // Socket is attached to server
