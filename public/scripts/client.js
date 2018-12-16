@@ -1,7 +1,9 @@
 /* JAN POHL 761383, RAVELL HEERDEGEN 761330 */
 
 // Starting up client side
-var socket = io();
+const socket = io('/', {
+    reconnection: false
+});
 
 // DIVs START
 var loginDiv = $("#loginDiv").show();
@@ -101,6 +103,13 @@ var userId;
 var rooms = [];
 // Personal data END
 
+// Global variables START
+
+let intervalVar;
+let reconnectionCounter = 0;
+
+// Global variables END
+
 /* Click Events START */
 
 /**
@@ -145,6 +154,7 @@ socket.on("result", (data) => {
  * Handles the logout of a user and puts him back to the login screen
  */
 logoutButton.click((callback) => {
+    socket.emit("disconnect");
     callback = loadLogoutConfiguration;
     callback();
 });
@@ -168,6 +178,10 @@ messageSendButton.click(() => {
 
 /* Socket.on Events START */
 
+socket.on("getInstanceID", (id) => {
+    console.log("Instance ID:", id);
+});
+
 /**
  * Handles the send socket-event of the server if a message was sent by a user
  */
@@ -178,10 +192,21 @@ socket.on("send", (data) => {
 /**
  * Handles the disconnecting socket-event of the server if a user leaves
  */
-socket.on("disconnecting", (data) => {
+socket.on("disconnected_user", (data) => {
     console.log(data);
     $("#usersonlinelist").html(data.message.usersOnlineListDOM);
     buildChatItem(data.message);
+});
+
+/**
+ * Hnadles the disconnect event if a client loses connection
+ */
+socket.on('disconnect', function () {
+    reconnectionCounter = 0;
+    console.log('disconnected');
+
+    //Retry reconnecting every 3 seconds
+    intervalVar = setInterval(tryReconnect, 3000);
 });
 
 /**
@@ -494,6 +519,27 @@ ss(socket).on("file_upload", (stream, data) => {
         }
     });
 });
+
+/**
+ * Handles the reconnecting event if a client drops his connection
+ */
+let tryReconnect = function () {
+    ++reconnectionCounter;
+    if (reconnectionCounter == 7) {
+        clearInterval(intervalVar);
+    }
+    console.log('Making a dummy http call to set jsessionid (before we do socket.io reconnect)');
+    $.ajax({
+        type: 'GET',
+        url: '/',
+        success: () => {
+            console.log("http request succeeded");
+            //reconnect the socket AFTER we got jsessionid set
+            socket.connect();
+            clearInterval(intervalVar);
+        }
+    });
+};
 
 /* Functions END */
 

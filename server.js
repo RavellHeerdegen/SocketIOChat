@@ -3,21 +3,16 @@
 /* Initialisation of all modules and prototypes START */
 const express = require("express"); //Get module express
 const app = express(); // Our app is an express application
-const ss = require('socket.io-stream'); // for streaming files
-const redis = require("redis");
+const ss = require("socket.io-stream"); // for streaming files
 
 // For Redis
-const session = require('express-session');
-const cookieParser = require('cookie-parser');
+const redis = require("redis");
+const express_session = require("express-session");
+const redisStore = require('connect-redis')(express_session);
+const expresssocketiosession = require("express-socket.io-session");
+const cookieParser = require("cookie-parser");
 const { URL } = require("url");
 const redisDBstring = "rediss://admin:ODRGZNKNYSESGVWU@portal57-10.bmix-eude-yp-4d6848cd-1f90-4625-9a84-c607ba7fa228.220726745.composedb.com:18794";
-let sub = redis.createClient(redisDBstring, {
-    tls: { servername: new URL(redisDBstring).hostname }
-});
-
-let pub = redis.createClient(redisDBstring, {
-    tls: { servername: new URL(redisDBstring).hostname }
-});
 // For Redis END
 
 // Modules start
@@ -42,24 +37,6 @@ app.use('/js', express.static(__dirname + '/node_modules/socket.io-stream')); //
 // app.enable('trust proxy'); // also works behind reverse proxies (load balancers)
 // app.use(express_enforces_ssl());
 
-// HANDLE SESSION CONFIGURATION
-var session = {
-    key: 'JSESSIONID',
-    secret: 'super-chat-bros',
-    cookie: {},
-    saveUninitialized: false,
-    resave: false
-};
-if (app.get('env') === 'production') {
-    app.set('trust proxy', 1) // trust first proxy
-    session.cookie.secure = true // serve secure cookies
-}
-
-app.use(session(session));
-// HANDLE SESSION CONFIGURATION END
-
-
-
 // Server variables START
 var users = []; // Sockets
 
@@ -70,7 +47,41 @@ server = app.listen(port, () => {
     console.log('Server running on port' + port);
 });
 
+// Sessionstore and pub and sub functionality
+let sub = redis.createClient(redisDBstring, {
+    tls: { servername: new URL(redisDBstring).hostname }
+});
+
+let pub = redis.createClient(redisDBstring, {
+    tls: { servername: new URL(redisDBstring).hostname }
+});
+
+let rClient = redis.createClient(redisDBstring, {
+    tls: { servername: new URL(redisDBstring).hostname }
+});
+
+let sessionStore = new redisStore({ client: rClient });
+// Sessionstore END
+
+// HANDLE SESSION CONFIGURATION
+const session = express_session({
+    store: sessionStore,
+    key: 'JSESSIONID',
+    secret: 'arbitrary-secret',
+    proxy: true,
+    cookie: {
+        maxAge: 24 * 60 * 60 * 1000,
+        secure: true
+    },
+    saveUninitialized: true,
+    resave: false
+});
+
+app.use(session);
+// HANDLE SESSION CONFIGURATION END
+
 const io = require("socket.io")(server); // Socket is attached to server
+io.use(expresssocketiosession(session)); // remember the client session
 
 // Set up Content Security Policy
 // app.use(helmet.contentSecurityPolicy({
@@ -106,7 +117,7 @@ app.get('/socket.io-stream.js', (req, res, next) => {
 sub.subscribe("send");
 sub.subscribe("login_successful");
 sub.subscribe("create_private_room");
-sub.subscribe("disconnecting");
+sub.subscribe("disconnected_user");
 
 sub.on("message", (channel, message) => {
     try {
@@ -118,8 +129,8 @@ sub.on("message", (channel, message) => {
                     message: JSON.parse(message)
                 })
                 break;
-            case "disconnecting":
-                io.in("AllChat").emit("disconnecting", {
+            case "disconnected_user":
+                io.in("AllChat").emit("disconnected_user", {
                     message: JSON.parse(message)
                 });
                 break;
@@ -150,9 +161,29 @@ sub.on("message", (channel, message) => {
  */
 io.on("connection", (socket) => {
 
+    //On connection send instanceId only in production mode
+    if (process.env.CF_INSTANCE_INDEX) {
+        socket.emit('getInstanceID', process.env.CF_INSTANCE_INDEX);
+    }
+
+    //check session
+    let data = socket.handshake.session.userdata;
+
+    if (data) {
+        let image = data.profilepic ? new Buffer(data.profilepic.data, 'base64') : "";
+        socket.username = data.username;
+        socket.id = data.userid;
+        socket.colorCode = data.color;
+        socket.profilepic = image;
+        socket.join("AllChat");
+        users.push(socket);
+
+        buildLoginMessage(socket).then(message => {
+            pub.publish("login_successful", JSON.stringify(message));
+        });
+    }
+
     ss(socket).on('file_upload', (stream, data) => {
-
-
 
         // users.forEach(user => {
         //     rooms = Object.keys(socket.rooms);
@@ -254,7 +285,7 @@ io.on("connection", (socket) => {
     /**
      * Event triggered when closing the tab, logging out or timing out or refreshing page
      */
-    socket.on("disconnecting", (callback) => {
+    socket.on("disconnect", (callback) => {
         callback = emitLogoutEvent;
         callback(socket);
     });
@@ -354,6 +385,13 @@ function emitLoginEvent(socket, data) {
                                                     colorcode: socket.colorCode
                                                 });
                                             }
+                                            socket.handshake.session.userdata = {
+                                                username: socket.username,
+                                                profilepic: socket.profilepic,
+                                                color: socket.colorCode,
+                                                userid: socket.id
+                                            };
+                                            socket.handshake.session.save();
                                             pub.publish("login_successful", JSON.stringify(message));
                                         }
                                     });
@@ -474,7 +512,7 @@ function emitLogoutEvent(socket) {
             if (result) {
                 buildLogoutMessage(socket).then(message => {
                     if (message !== "") {
-                        pub.publish("disconnecting", JSON.stringify(message));
+                        pub.publish("disconnected_user", JSON.stringify(message));
                     }
                 });
             } else {
