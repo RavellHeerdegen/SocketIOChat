@@ -213,7 +213,6 @@ socket.on('disconnect', function () {
  * Handles the login_successful socket-event of the server depending who the user is
  */
 socket.on("login_successful", (data, callback) => {
-    console.log(data);
     $("#usersonlinelist").html(data.message.usersOnlineListDOM);
     if (data.message.sendername === username) { // we are the logging in user
         console.log("Logged into chat. Nice!");
@@ -225,16 +224,10 @@ socket.on("login_successful", (data, callback) => {
 });
 
 socket.on("reconnect_successful", (data, callback) => {
-    if (username !== undefined && username !== "" && data.message.sendername === username) {
-        console.log("Reconnected");
-        $("#usersonlinelist").html(data.message.usersOnlineListDOM);
-        username = data.message.sendername;
-        rooms = [];
-        callback = loadLoginConfiguration;
-        callback(data.message);
-    } else {
-        callback = buildChatItem(data.message);
-    }
+    console.log(data.message);
+    $("#usersonlinelist").html(data.message.usersOnlineListDOM);
+    callback = loadLoginConfiguration;
+    callback(data.message);
 });
 
 /**
@@ -391,6 +384,10 @@ function buildChatItem(data) {
  */
 function loadLogoutConfiguration() {
     location.reload(true);
+    rooms = [];
+    activeroom = "";
+    username = "";
+    userid = "";
 }
 
 /**

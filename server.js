@@ -118,7 +118,6 @@ sub.subscribe("send");
 sub.subscribe("login_successful");
 sub.subscribe("create_private_room");
 sub.subscribe("disconnected_user");
-sub.subscribe("reconnect_successful");
 
 sub.on("message", (channel, message) => {
     try {
@@ -127,11 +126,6 @@ sub.on("message", (channel, message) => {
 
             case "login_successful":
                 io.in("AllChat").emit("login_successful", {
-                    message: JSON.parse(message)
-                });
-                break;
-            case "reconnect_successful":
-                io.in("AllChat").emit("reconnect_successful", {
                     message: JSON.parse(message)
                 });
                 break;
@@ -176,11 +170,11 @@ io.on("connection", (socket) => {
     let data = socket.handshake.session.userdata;
 
     if (data) {
-        let image = data.profilepic ? new Buffer(data.profilepic.data, 'base64') : "";
+        // let image = data.profilepic ? new Buffer(data.profilepic.data, 'base64') : "";
         socket.username = data.username;
         socket.id = data.userid;
         socket.colorCode = data.color;
-        socket.profilepic = image;
+        // socket.profilepic = image;
         socket.join("AllChat");
         users.push(socket);
         socket.emit("clientlog", {
@@ -188,7 +182,9 @@ io.on("connection", (socket) => {
         });
 
         buildLoginMessage(socket).then(message => {
-            pub.publish("reconnect_successful", JSON.stringify(message));
+            socket.emit("reconnect_successful", {
+                message: "Reconnecting successful"
+            });
         });
     }
 
@@ -553,11 +549,6 @@ function emitDisconnectEvent(socket) {
             }
         }
         users.splice(index, 1); // Delete disconnecting user from active users
-        buildLogoutMessage(socket).then(message => {
-            if (message !== "") {
-                pub.publish("disconnected_user", JSON.stringify(message));
-            }
-        });
     }
 }
 
