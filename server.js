@@ -125,13 +125,17 @@ sub.on("message", (channel, message) => {
         switch (channel) {
 
             case "login_successful":
-                io.in("AllChat").emit("login_successful", {
-                    message: JSON.parse(message)
+                users.forEach(socket => {
+                    socket.emit("login_successful", {
+                        message: JSON.parse(message)
+                    });
                 });
                 break;
             case "disconnected_user":
-                io.in("AllChat").emit("disconnected_user", {
-                    message: JSON.parse(message)
+                users.forEach(socket => {
+                    socket.emit("disconnected_user", {
+                        message: JSON.parse(message)
+                    });
                 });
                 break;
             case "send":
@@ -144,8 +148,13 @@ sub.on("message", (channel, message) => {
                 break;
             case "create_private_room":
                 jsonobject = JSON.parse(message);
-                io.in(jsonobject.roomname).emit("established_private_room", {
-                    room: jsonobject
+                users.forEach(socket => {
+                    if (socket.username === jsonobject.receivername || socket.username === jsonobject.sendername) {
+                        socket.join(jsonobject.room.roomname);
+                        socket.emit("established_private_room", {
+                            room: jsonobject.room
+                        });
+                    }
                 });
                 break;
         }
@@ -257,11 +266,17 @@ io.on("connection", (socket) => {
         room.sendername = ownUsername; //Fritz
         room.recipientname = otherUsername; //Ursula
 
-        socket.join(room.roomname);
-        othersocket = users.find(f => f.username === otherUsername);
-        othersocket.join(room.roomname);
+        // socket.join(room.roomname);
+        // othersocket = users.find(f => f.username === otherUsername);
+        // othersocket.join(room.roomname);
 
-        pub.publish("create_private_room", JSON.stringify(room));
+        privateRoomMessage = {
+            room: room,
+            sendername: ownUsername,
+            receivername: otherUsername
+        }
+
+        pub.publish("create_private_room", JSON.stringify(privateRoomMessage));
     });
 
     // Handles the updatechattabs event and delegates to build the tabs of a specific user

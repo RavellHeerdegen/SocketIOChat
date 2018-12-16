@@ -169,8 +169,6 @@ messageSendButton.click(() => {
     } else if (message.val().trim().length === 0) {
 
     } else {
-        console.log(activeroom.roomname);
-        console.log(username);
         socket.emit("send", { message: message.val(), room: activeroom.roomname });
         message.val("");
     }
@@ -195,7 +193,6 @@ socket.on("send", (data) => {
  * Handles the disconnecting socket-event of the server if a user leaves
  */
 socket.on("disconnected_user", (data) => {
-    console.log(data);
     $("#usersonlinelist").html(data.message.usersOnlineListDOM);
     buildChatItem(data.message);
 });
@@ -226,7 +223,6 @@ socket.on("login_successful", (data, callback) => {
 });
 
 socket.on("reconnect_successful", (data, callback) => {
-    console.log(data.message);
     $("#usersonlinelist").html(data.message.usersOnlineListDOM);
     callback = loadReconnectConfiguration;
     callback(data.message);
@@ -364,10 +360,6 @@ function loadReconnectConfiguration(data) {
  * @param {Message} data the message going to get built in the chat window 
  */
 function buildChatItem(data) {
-    console.log("In buildCHatItem");
-    console.log(username);
-    console.log("Sollte passen zu:");
-    console.log(data.sendername);
     listItemDiv = "";
     builtListItem = "";
     if (data.sendername === username) {
@@ -390,12 +382,10 @@ function buildChatItem(data) {
 
     room = rooms.find(room => room.roomname === data.room.roomname);
     if (room) {
-        console.log("Message received");
         room.chatContent.push(listItemDiv);
     }
     $("#chatWindow").empty();
     activeroom.chatContent.forEach(message => {
-        console.log("Show message of activeroom");
         $("#chatWindow").html($("#chatWindow").html() + message);
     })
 
@@ -561,12 +551,10 @@ let tryReconnect = function () {
     if (reconnectionCounter == 7) {
         clearInterval(intervalVar);
     }
-    console.log('Making a dummy http call to set jsessionid (before we do socket.io reconnect)');
     $.ajax({
         type: 'GET',
         url: '/',
         success: () => {
-            console.log("http request succeeded");
             //reconnect the socket AFTER we got jsessionid set
             socket.connect();
             clearInterval(intervalVar);
