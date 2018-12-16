@@ -224,6 +224,15 @@ socket.on("login_successful", (data, callback) => {
     }
 });
 
+socket.on("reconnect_successful", (data, callback) => {
+    console.log("Reconnected");
+    $("#usersonlinelist").html(data.message.usersOnlineListDOM);
+    username = data.message.sendername;
+    rooms = [];
+    callback = loadLoginConfiguration;
+    callback(data.message);
+});
+
 /**
  * Handles the register-successful event and gives feedback to the requesting client
  */

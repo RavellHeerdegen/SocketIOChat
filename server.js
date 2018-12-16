@@ -118,6 +118,7 @@ sub.subscribe("send");
 sub.subscribe("login_successful");
 sub.subscribe("create_private_room");
 sub.subscribe("disconnected_user");
+sub.subscribe("reconnect_successful");
 
 sub.on("message", (channel, message) => {
     try {
@@ -127,7 +128,12 @@ sub.on("message", (channel, message) => {
             case "login_successful":
                 io.in("AllChat").emit("login_successful", {
                     message: JSON.parse(message)
-                })
+                });
+                break;
+            case "reconnect_successful":
+                socket.emit("reconnect_successful", {
+                    message: JSON.parse(message)
+                });
                 break;
             case "disconnected_user":
                 io.in("AllChat").emit("disconnected_user", {
@@ -179,7 +185,7 @@ io.on("connection", (socket) => {
         users.push(socket);
 
         buildLoginMessage(socket).then(message => {
-            pub.publish("login_successful", JSON.stringify(message));
+            pub.publish("reconnect_successful", JSON.stringify(message));
         });
     }
 
