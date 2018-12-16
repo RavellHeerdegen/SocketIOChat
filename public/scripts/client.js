@@ -345,8 +345,8 @@ function loadLoginConfiguration(data) {
 }
 
 /**
- * Loads up the login configuration of the DOM-Elements
- * @param {LoginMessage} data the message sent if a new user connected
+ * Loads up the reconnect configuration of the DOM-Elements
+ * @param {LoginMessage} data the message sent if a user reconnected
  */
 function loadReconnectConfiguration(data) {
     buildChatItem(data);

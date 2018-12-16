@@ -33,9 +33,8 @@ app.use('/js', express.static(__dirname + '/node_modules/jquery/dist')); // redi
 app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css')); // redirect CSS bootstrap
 app.use('/css', express.static(__dirname + '/node_modules/@mdi/font/css')); // redirect CSS MaterialDesignIcons
 app.use('/js', express.static(__dirname + '/node_modules/socket.io-stream')); // redirect JS Socket-io-Stream
-// app.use(helmet());
-// app.enable('trust proxy'); // also works behind reverse proxies (load balancers)
-// app.use(express_enforces_ssl());
+app.use(helmet());
+app.use(express_enforces_ssl());
 
 // Server variables START
 var users = []; // Sockets
@@ -84,16 +83,16 @@ const io = require("socket.io")(server); // Socket is attached to server
 io.use(expresssocketiosession(session)); // remember the client session
 
 // Set up Content Security Policy
-// app.use(helmet.contentSecurityPolicy({
-//     directives: {
-//         defaultSrc: ["'self'"],
-//         styleSrc: ["'self'", 'maxcdn.bootstrapcdn.com', "'unsafe-inline'", "fonts.googleapis.com", "fonts.gstatic.com"],
-//         imgSrc: ["'self'", "self data: blob:;"],
-//         fontSrc: ["fonts.googleapis.com", "fonts.gstatic.com", "'self'"],
-//         connectSrc: ["'self'", "wss://*.mybluemix.net", "socket.io"],
-//         scriptSrc: ["'self'", "'unsafe-inline'"]
-//     }
-// }));
+app.use(helmet.contentSecurityPolicy({
+    directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", 'maxcdn.bootstrapcdn.com', "'unsafe-inline'", "fonts.googleapis.com", "fonts.gstatic.com"],
+        imgSrc: ["'self'", "self data: blob:;"],
+        fontSrc: ["fonts.googleapis.com", "fonts.gstatic.com", "'self'"],
+        connectSrc: ["'self'", "wss://*.mybluemix.net", "socket.io"],
+        scriptSrc: ["'self'", "'unsafe-inline'"]
+    }
+}));
 
 /* Routes START */
 
@@ -136,11 +135,10 @@ sub.on("message", (channel, message) => {
                 break;
             case "send":
                 jsonobject = JSON.parse(message);
-                io.in(jsonobject.room).emit("send", {
-                    message: jsonobject.message
-                });
-                io.in(jsonobject.room).emit("clientlog", {
-                    log: "I receive pub send event"
+                users.forEach(socket => {
+                    socket.emit("send", {
+                        message: jsonobject.message
+                    });
                 });
                 break;
             case "create_private_room":
@@ -173,11 +171,11 @@ io.on("connection", (socket) => {
     let data = socket.handshake.session.userdata;
 
     if (data) {
-        // let image = data.profilepic ? new Buffer(data.profilepic.data, 'base64') : "";
+        let image = data.profilepic ? new Buffer(data.profilepic.data, 'base64') : "";
         socket.username = data.username;
         socket.id = data.userid;
         socket.colorCode = data.color;
-        // socket.profilepic = image;
+        socket.profilepic = image;
         socket.join("AllChat");
         users.push(socket);
         socket.emit("clientlog", {
@@ -193,25 +191,25 @@ io.on("connection", (socket) => {
 
     ss(socket).on('file_upload', (stream, data) => {
 
-        // users.forEach(user => {
-        //     rooms = Object.keys(socket.rooms);
-        //     if (rooms.find(room => room === data.room.roomname)) {
-        //         clientstream = ss.createStream();
+        users.forEach(user => {
+            rooms = Object.keys(socket.rooms);
+            if (rooms.find(room => room === data.room.roomname)) {
+                clientstream = ss.createStream();
 
-        //         date = new Date();
+                date = new Date();
 
-        //         ss(user).emit('file_upload', clientstream, {
-        //             sender: data.sender,
-        //             colorCode: data.colorcode,
-        //             timeStamp: date.getDay() + "." + date.getMonth() + "." + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes(),
-        //             name: data.name,
-        //             size: data.size,
-        //             type: data.type,
-        //             room: data.room
-        //         });
-        //         stream.pipe(clientstream);
-        //     }
-        // });
+                ss(user).emit('file_upload', clientstream, {
+                    sender: data.sender,
+                    colorCode: data.colorcode,
+                    timeStamp: date.getDay() + "." + date.getMonth() + "." + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes(),
+                    name: data.name,
+                    size: data.size,
+                    type: data.type,
+                    room: data.room
+                });
+                stream.pipe(clientstream);
+            }
+        });
     });
 
     socket.on("profile_pic_upload", (data) => {
