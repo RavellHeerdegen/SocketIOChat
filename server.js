@@ -276,13 +276,13 @@ io.on("connection", (socket) => {
         room = data.room;
         buildTextMessage(socket, message, room).then((result) => {
             userMessage = result;
-            // io.in(room).emit("send", {
-            //     message: userMessage
-            // });
             messageToSend = {
                 message: userMessage,
                 room: room
             }
+            socket.emit("clientlog", {
+                log: "Receiving send event"
+            });
             pub.publish("send", JSON.stringify(messageToSend));
         });
     });

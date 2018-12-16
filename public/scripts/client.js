@@ -169,6 +169,8 @@ messageSendButton.click(() => {
     } else if (message.val().trim().length === 0) {
 
     } else {
+        console.log(activeroom.roomname);
+        console.log(username);
         socket.emit("send", { message: message.val(), room: activeroom.roomname });
         message.val("");
     }
