@@ -364,6 +364,10 @@ function loadReconnectConfiguration(data) {
  * @param {Message} data the message going to get built in the chat window 
  */
 function buildChatItem(data) {
+    console.log("In buildCHatItem");
+    console.log(username);
+    console.log("Sollte passen zu:");
+    console.log(data.sendername);
     listItemDiv = "";
     builtListItem = "";
     if (data.sendername === username) {

@@ -139,6 +139,9 @@ sub.on("message", (channel, message) => {
                 io.in(jsonobject.room).emit("send", {
                     message: jsonobject.message
                 });
+                io.in(jsonobject.room).emit("clientlog", {
+                    log: "I receive pub send event"
+                });
                 break;
             case "create_private_room":
                 jsonobject = JSON.parse(message);
@@ -280,9 +283,6 @@ io.on("connection", (socket) => {
                 message: userMessage,
                 room: room
             }
-            socket.emit("clientlog", {
-                log: "Receiving send event"
-            });
             pub.publish("send", JSON.stringify(messageToSend));
         });
     });
