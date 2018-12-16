@@ -226,7 +226,7 @@ socket.on("login_successful", (data, callback) => {
 socket.on("reconnect_successful", (data, callback) => {
     console.log(data.message);
     $("#usersonlinelist").html(data.message.usersOnlineListDOM);
-    callback = loadLoginConfiguration;
+    callback = loadReconnectConfiguration;
     callback(data.message);
 });
 
@@ -329,11 +329,24 @@ socket.on("profilepic_loaded", (data) => {
  */
 function loadLoginConfiguration(data) {
     activeroom = data.room;
-    if (!rooms[activeroom]) {
-        rooms.push(activeroom);
-    };
+    rooms.push(activeroom);
     chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
     $("#loggedInUserName").html(data.loggedInAsString);
+    buildChatItem(data);
+    loginDiv.hide();
+    chatDiv.show();
+    socket.emit("update_chattabs", {
+        username: username,
+        rooms: rooms
+    });
+    $("#message").focus();
+}
+
+/**
+ * Loads up the login configuration of the DOM-Elements
+ * @param {LoginMessage} data the message sent if a new user connected
+ */
+function loadReconnectConfiguration(data) {
     buildChatItem(data);
     loginDiv.hide();
     chatDiv.show();
