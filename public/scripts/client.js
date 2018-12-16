@@ -384,6 +384,7 @@ function buildChatItem(data) {
 
     room = rooms.find(room => room.roomname === data.room.roomname);
     if (room) {
+        console.log("Message received");
         room.chatContent.push(listItemDiv);
     }
     $("#chatWindow").empty();
