@@ -295,12 +295,14 @@ io.on("connection", (socket) => {
      * Event triggered when closing the tab, logging out or timing out or refreshing page
      */
     socket.on("logout", (callback) => {
+        delete socket.handshake.session.userdata;
+        socket.handshake.session.save();
         callback = emitLogoutEvent;
         callback(socket);
     });
 
     socket.on("disconnect", (callback) => {
-        callback = emitLogoutEvent;
+        callback = emitDisconnectEvent;
         callback(socket);
     });
 
@@ -525,8 +527,6 @@ function emitLogoutEvent(socket) {
         users.splice(index, 1); // Delete disconnecting user from active users
         databasemodule.deleteLoggedInUser(socket.username).then((result) => {
             if (result) {
-                delete socket.handshake.session.userdata;
-                socket.handshake.session.save();
                 buildLogoutMessage(socket).then(message => {
                     if (message !== "") {
                         pub.publish("disconnected_user", JSON.stringify(message));
@@ -534,6 +534,28 @@ function emitLogoutEvent(socket) {
                 });
             } else {
                 console.log(result);
+            }
+        });
+    }
+}
+
+/**
+ * Handles the logout process like disconnecting the client and inform the other users
+ * @param {Socket} socket the disconnecting client socket
+ */
+function emitDisconnectEvent(socket) {
+    if (socket.username !== undefined && socket !== null) {
+
+        var index;
+        for (i = 0; i < users.length; i++) {
+            if (users[i].username === socket.username) {
+                index = i;
+            }
+        }
+        users.splice(index, 1); // Delete disconnecting user from active users
+        buildLogoutMessage(socket).then(message => {
+            if (message !== "") {
+                pub.publish("disconnected_user", JSON.stringify(message));
             }
         });
     }
