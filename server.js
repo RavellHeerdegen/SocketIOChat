@@ -294,6 +294,11 @@ io.on("connection", (socket) => {
     /**
      * Event triggered when closing the tab, logging out or timing out or refreshing page
      */
+    socket.on("logout", (callback) => {
+        callback = emitLogoutEvent;
+        callback(socket);
+    });
+
     socket.on("disconnect", (callback) => {
         callback = emitLogoutEvent;
         callback(socket);
@@ -520,6 +525,8 @@ function emitLogoutEvent(socket) {
         users.splice(index, 1); // Delete disconnecting user from active users
         databasemodule.deleteLoggedInUser(socket.username).then((result) => {
             if (result) {
+                delete socket.handshake.session.userdata;
+                socket.handshake.session.save();
                 buildLogoutMessage(socket).then(message => {
                     if (message !== "") {
                         pub.publish("disconnected_user", JSON.stringify(message));

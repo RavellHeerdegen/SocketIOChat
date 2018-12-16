@@ -154,7 +154,7 @@ socket.on("result", (data) => {
  * Handles the logout of a user and puts him back to the login screen
  */
 logoutButton.click((callback) => {
-    socket.emit("disconnect");
+    socket.emit("logout");
     callback = loadLogoutConfiguration;
     callback();
 });
