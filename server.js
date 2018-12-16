@@ -183,7 +183,7 @@ io.on("connection", (socket) => {
 
         buildLoginMessage(socket).then(message => {
             socket.emit("reconnect_successful", {
-                message: "Reconnecting successful"
+                message: message
             });
         });
     }
