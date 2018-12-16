@@ -329,7 +329,9 @@ socket.on("profilepic_loaded", (data) => {
  */
 function loadLoginConfiguration(data) {
     activeroom = data.room;
-    rooms.push(activeroom);
+    if (!rooms[activeroom]) {
+        rooms.push(activeroom);
+    };
     chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
     $("#loggedInUserName").html(data.loggedInAsString);
     buildChatItem(data);
