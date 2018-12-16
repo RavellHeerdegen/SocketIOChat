@@ -183,6 +183,9 @@ io.on("connection", (socket) => {
         socket.profilepic = image;
         socket.join("AllChat");
         users.push(socket);
+        socket.emit("clientlog", {
+            log: "Reconnecting..."
+        });
 
         buildLoginMessage(socket).then(message => {
             pub.publish("reconnect_successful", JSON.stringify(message));
@@ -383,6 +386,12 @@ function emitLoginEvent(socket, data) {
                                                 log: "Failed to login successfully"
                                             });
                                         } else {
+
+                                            socket.handshake.session.userdata = {
+                                                username: socket.username,
+                                                color: socket.colorCode,
+                                                userid: socket.id
+                                            };
                                             if (success.profilepic) {
                                                 base64buffer = Buffer.from(success.profilepic);
                                                 // userConnectedMessage.profilepic = base64buffer;
@@ -390,13 +399,8 @@ function emitLoginEvent(socket, data) {
                                                     image: base64buffer,
                                                     colorcode: socket.colorCode
                                                 });
+                                                socket.handshake.session.userdata.profilepic = base64buffer;
                                             }
-                                            socket.handshake.session.userdata = {
-                                                username: socket.username,
-                                                profilepic: socket.profilepic,
-                                                color: socket.colorCode,
-                                                userid: socket.id
-                                            };
                                             socket.handshake.session.save();
                                             pub.publish("login_successful", JSON.stringify(message));
                                         }
