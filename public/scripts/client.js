@@ -389,6 +389,7 @@ function buildChatItem(data) {
     }
     $("#chatWindow").empty();
     activeroom.chatContent.forEach(message => {
+        console.log("Show message of activeroom");
         $("#chatWindow").html($("#chatWindow").html() + message);
     })
 
