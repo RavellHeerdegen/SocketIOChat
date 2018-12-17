@@ -362,6 +362,7 @@ function loadReconnectConfiguration(data, callback) {
         this.activeroom.roomname = "AllChat";
         this.activeroom.recipientname = "AllChat";
         this.activeroom.sendername = "AllChat";
+        this.activeroom.chatContent = [];
         this.activeroom = rooms.find(room => room.roomname === data.room.roomname);
         console.log(this.activeroom);
     }
