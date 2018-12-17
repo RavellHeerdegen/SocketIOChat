@@ -353,32 +353,23 @@ function loadReconnectConfiguration(data, callback) {
     chatWindowDiv.html("");
     chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
 
-    console.log(chatWindowDiv.html());
-
-    console.log(data.room);
     username = data.sendername;
     if (rooms !== undefined && rooms !== null) {
         
         if (rooms.find(room => room.roomname === data.room.roomname)) {
-            console.log("Found AllChat");
         } else {
-            console.log("Found no AllChat");
             activeroom = data.room;
             rooms.push(activeroom);
         }
     } else {
-        console.log("Rooms is undefined");
         rooms = [];
         activeroom = data.room;
         rooms.push(activeroom);
     }
-    console.log(activeroom);
     $("#loggedInUserName").html(data.loggedInAsString);
     buildChatItem(data);
     loginDiv.hide();
     chatDiv.show();
-    console.log("In der reconnect");
-    console.log(rooms);
     socket.emit("update_chattabs", {
         username: username,
         rooms: rooms
@@ -413,16 +404,11 @@ function buildChatItem(data) {
 
     room = rooms.find(room => room.roomname === data.room.roomname);
     if (room) {
-        console.log(room);
         room.chatContent.push(listItemDiv);
     }
     $("#chatWindow").empty();
     if (activeroom) {
-        console.log("In buildChatItem activeroom");
-        console.log(activeroom);
         activeroom.chatContent.forEach(message => {
-            console.log("In der foreach");
-            console.log(message);
             $("#chatWindow").html($("#chatWindow").html() + message);
         });
     }
