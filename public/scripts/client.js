@@ -548,7 +548,7 @@ ss(socket).on("file_upload", (stream, data) => {
  */
 let tryReconnect = function () {
     ++reconnectionCounter;
-    if (reconnectionCounter == 7) {
+    if (reconnectionCounter == 10) {
         clearInterval(intervalVar);
     }
     $.ajax({

@@ -181,22 +181,31 @@ io.on("connection", (socket) => {
     let data = socket.handshake.session.userdata;
 
     if (data) {
-        let image = data.profilepic ? new Buffer(data.profilepic.data, 'base64') : "";
-        socket.username = data.username;
-        socket.id = data.userid;
-        socket.colorCode = data.color;
-        socket.profilepic = image;
-        socket.join("AllChat");
-        users.push(socket);
-        socket.emit("clientlog", {
-            log: "Reconnecting..."
+        databasemodule.saveLoggedInUser(data.username, data.color).then(result => {
+            if (result) {
+                let image = data.profilepic ? new Buffer(data.profilepic.data, 'base64') : "";
+                socket.username = data.username;
+                socket.id = data.userid;
+                socket.colorCode = data.color;
+                socket.profilepic = image;
+                socket.join("AllChat");
+                users.push(socket);
+                socket.emit("clientlog", {
+                    log: "Reconnecting..."
+                });
+
+                buildLoginMessage(socket).then(message => {
+                    socket.emit("reconnect_successful", {
+                        message: message
+                    });
+                });
+            } else {
+                socket.emit("clientlog", {
+                    log: "Recoonection failed when relogging in"
+                });
+            }
         });
 
-        buildLoginMessage(socket).then(message => {
-            socket.emit("reconnect_successful", {
-                message: message
-            });
-        });
     }
 
     ss(socket).on('file_upload', (stream, data) => {
@@ -312,7 +321,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", (callback) => {
-        callback = emitDisconnectEvent;
+        callback = emitLogoutEvent;
         callback(socket);
     });
 
@@ -546,23 +555,6 @@ function emitLogoutEvent(socket) {
                 console.log(result);
             }
         });
-    }
-}
-
-/**
- * Handles the logout process like disconnecting the client and inform the other users
- * @param {Socket} socket the disconnecting client socket
- */
-function emitDisconnectEvent(socket) {
-    if (socket.username !== undefined && socket !== null) {
-
-        var index;
-        for (i = 0; i < users.length; i++) {
-            if (users[i].username === socket.username) {
-                index = i;
-            }
-        }
-        users.splice(index, 1); // Delete disconnecting user from active users
     }
 }
 
