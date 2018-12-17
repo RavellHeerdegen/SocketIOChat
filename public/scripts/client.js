@@ -225,8 +225,15 @@ socket.on("login_successful", (data, callback) => {
 socket.on("reconnect_successful", (data, callback) => {
     $("#usersonlinelist").html(data.message.usersOnlineListDOM);
     callback = loadReconnectConfiguration;
-    callback(data.message);
+    callback(data.message, updateChatTabs);
 });
+
+function updateChatTabs() {
+    socket.emit("update_chattabs", {
+        username: username,
+        rooms: rooms
+    });
+}
 
 /**
  * Handles the register-successful event and gives feedback to the requesting client
@@ -366,12 +373,6 @@ function loadReconnectConfiguration(data, callback) {
     chatDiv.show();
 
     $("#message").focus();
-    callback = (
-        socket.emit("update_chattabs", {
-            username: username,
-            rooms: rooms
-        }
-    ));
     callback();
 }
 
