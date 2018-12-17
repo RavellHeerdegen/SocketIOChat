@@ -345,6 +345,18 @@ function loadLoginConfiguration(data) {
  * @param {LoginMessage} data the message sent if a user reconnected
  */
 function loadReconnectConfiguration(data) {
+    $("#loggedInUserName").html(data.loggedInAsString);
+    if (!this.rooms) {
+        this.rooms = [];
+        this.rooms.push(data.room);
+    }
+    if (!this.activeroom) {
+        this.activeroom = this.rooms.find(room => room.roomname === data.room.roomname);
+    }
+    if (!chatWindowDiv) {
+        chatWindowDiv = $("#chatWindowDiv");
+        chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
+    }
     buildChatItem(data);
     loginDiv.hide();
     chatDiv.show();
@@ -385,9 +397,12 @@ function buildChatItem(data) {
         room.chatContent.push(listItemDiv);
     }
     $("#chatWindow").empty();
-    activeroom.chatContent.forEach(message => {
-        $("#chatWindow").html($("#chatWindow").html() + message);
-    })
+    if(activeroom){
+        activeroom.chatContent.forEach(message => {
+            $("#chatWindow").html($("#chatWindow").html() + message);
+        });
+    }
+   
 
     $("#chatWindowDiv").stop().animate({ scrollTop: $("#chatWindowDiv")[0].scrollHeight }, 1000);
 }

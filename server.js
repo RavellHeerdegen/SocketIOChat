@@ -10,7 +10,6 @@ const redis = require("redis");
 const express_session = require("express-session");
 const redisStore = require('connect-redis')(express_session);
 const expresssocketiosession = require("express-socket.io-session");
-const cookieParser = require("cookie-parser");
 const { URL } = require("url");
 const redisDBstring = "rediss://admin:ODRGZNKNYSESGVWU@portal57-10.bmix-eude-yp-4d6848cd-1f90-4625-9a84-c607ba7fa228.220726745.composedb.com:18794";
 // For Redis END
@@ -76,8 +75,8 @@ const session = express_session({
     resave: false
 });
 
-app.use(session);
 app.set('trust proxy', 1);//Trust load balancer
+app.use(session);
 // HANDLE SESSION CONFIGURATION END
 
 const io = require("socket.io")(server); // Socket is attached to server
@@ -181,31 +180,32 @@ io.on("connection", (socket) => {
     let data = socket.handshake.session.userdata;
 
     if (data) {
-        databasemodule.saveLoggedInUser(data.username, data.color).then(result => {
-            if (result) {
-                let image = data.profilepic ? new Buffer(data.profilepic.data, 'base64') : "";
-                socket.username = data.username;
-                socket.id = data.userid;
-                socket.colorCode = data.color;
-                socket.profilepic = image;
-                socket.join("AllChat");
-                users.push(socket);
-                socket.emit("clientlog", {
-                    log: "Reconnecting..."
-                });
-
-                buildLoginMessage(socket).then(message => {
-                    socket.emit("reconnect_successful", {
-                        message: message
+        databasemodule.deleteLoggedInUser(data.username).then((deleteSuccess) => { 
+            databasemodule.saveLoggedInUser(data.username, data.color).then(result => {   //returned undefined
+                if (result) {
+                    let image = data.profilepic ? new Buffer(data.profilepic.data, 'base64') : "";
+                    socket.username = data.username;
+                    socket.id = data.userid;
+                    socket.colorCode = data.color;
+                    socket.profilepic = image;
+                    socket.join("AllChat");
+                    users.push(socket);
+                    socket.emit("clientlog", {
+                        log: "Reconnecting..."
                     });
-                });
-            } else {
-                socket.emit("clientlog", {
-                    log: "Recoonection failed when relogging in"
-                });
-            }
+    
+                    buildLoginMessage(socket).then(message => {
+                        socket.emit("reconnect_successful", {
+                            message: message
+                        });
+                    });
+                } else {
+                    socket.emit("clientlog", {
+                        log: "Recoonection failed when relogging in"
+                    });
+                }
+            });
         });
-
     }
 
     ss(socket).on('file_upload', (stream, data) => {
