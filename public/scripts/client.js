@@ -223,28 +223,15 @@ socket.on("login_successful", (data, callback) => {
 });
 
 socket.on("reconnect_successful", (data, callback) => {
-    $("#usersonlinelist").html(data.message.usersOnlineListDOM);
-    $("#loggedInUserName").html(data.message.loggedInAsString);
-    if (rooms === undefined) {
-        rooms = [];
-        activeroom = data.message.room;
-        rooms.push(activeroom);
-    }
-    console.log(activeroom);
+
     if (!chatWindowDiv) {
         chatWindowDiv = $("#chatWindowDiv");
         chatWindowDiv.html(chatWindowDiv.html() + data.message.chatDOM);
     }
     callback = loadReconnectConfiguration;
-    callback(data.message, updateChatTabs);
-});
+    callback(data.message);
 
-function updateChatTabs() {
-    socket.emit("update_chattabs", {
-        username: username,
-        rooms: rooms
-    });
-}
+});
 
 /**
  * Handles the register-successful event and gives feedback to the requesting client
@@ -363,12 +350,26 @@ function loadLoginConfiguration(data) {
  * @param {LoginMessage} data the message sent if a user reconnected
  */
 function loadReconnectConfiguration(data, callback) {
+    console.log(data.room);
+    username = data.sendername;
+    if (rooms !== undefined) {
+        activeroom = data.room;
+        rooms.push(activeroom);
+    } else {
+        rooms = [];
+        activeroom = data.room;
+        rooms.push(activeroom);
+    }
+    console.log(activeroom);
+    $("#loggedInUserName").html(data.loggedInAsString);
     buildChatItem(data);
     loginDiv.hide();
     chatDiv.show();
-
+    socket.emit("update_chattabs", {
+        username: username,
+        rooms: rooms
+    });
     $("#message").focus();
-    callback();
 }
 
 /**
