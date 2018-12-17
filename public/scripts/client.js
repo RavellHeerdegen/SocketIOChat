@@ -353,14 +353,16 @@ function loadReconnectConfiguration(data, callback) {
 
     console.log(data.room);
     username = data.sendername;
-    if (rooms !== undefined) {
+    if (rooms !== undefined && rooms !== null) {
         activeroom = data.room;
         if (rooms.find(room => room.roomname === activeroom.roomname)) {
-
+            console.log("Found AllChat");
         } else {
+            console.log("Found no AllChat");
             rooms.push(activeroom);
         }
     } else {
+        console.log("Rooms is undefined");
         rooms = [];
         activeroom = data.room;
         rooms.push(activeroom);
@@ -583,12 +585,12 @@ let tryReconnect = function () {
     if (reconnectionCounter == 10) {
         clearInterval(intervalVar);
     }
-    console.log("http dummy request");
+    console.log("Requesting server for session");
     $.ajax({
         type: 'GET',
         url: '/',
         success: () => {
-            console.log("dummy request successful");
+            console.log("session gained");
             //reconnect the socket AFTER we got jsessionid set
             socket.connect();
             clearInterval(intervalVar);
