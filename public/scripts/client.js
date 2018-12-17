@@ -224,7 +224,7 @@ socket.on("login_successful", (data, callback) => {
 
 socket.on("reconnect_successful", (data, callback) => {
 
-    if (!chatWindowDiv) {
+    if (chatWindowDiv === undefined) {
         chatWindowDiv = $("#chatWindowDiv");
         chatWindowDiv.html(chatWindowDiv.html() + data.message.chatDOM);
     }
@@ -365,6 +365,8 @@ function loadReconnectConfiguration(data, callback) {
     buildChatItem(data);
     loginDiv.hide();
     chatDiv.show();
+    console.log("In der reconnect");
+    console.log(rooms);
     socket.emit("update_chattabs", {
         username: username,
         rooms: rooms
@@ -399,10 +401,13 @@ function buildChatItem(data) {
 
     room = rooms.find(room => room.roomname === data.room.roomname);
     if (room) {
+        console.log(room);
         room.chatContent.push(listItemDiv);
     }
     $("#chatWindow").empty();
     if (activeroom) {
+        console.log("In buildChatItem activeroom");
+        console.log(activeroom);
         activeroom.chatContent.forEach(message => {
             $("#chatWindow").html($("#chatWindow").html() + message);
         });
