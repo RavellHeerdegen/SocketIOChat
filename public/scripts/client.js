@@ -178,6 +178,10 @@ messageSendButton.click(() => {
 
 /* Socket.on Events START */
 
+
+/**
+ * Handles the instanceID call of the server and displays the instance id
+ */
 socket.on("getInstanceID", (id) => {
     console.log("Instance ID:", id);
 });
@@ -202,7 +206,7 @@ socket.on("disconnected_user", (data) => {
  */
 socket.on('disconnect', function () {
     reconnectionCounter = 0;
-    console.log('disconnected');
+    console.log('Disconnected due to instance shutdown');
 
     //Retry reconnecting every 3 seconds
     intervalVar = setInterval(tryReconnect, 3000);
