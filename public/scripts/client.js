@@ -551,10 +551,12 @@ let tryReconnect = function () {
     if (reconnectionCounter == 10) {
         clearInterval(intervalVar);
     }
+    console.log("http dummy request");
     $.ajax({
         type: 'GET',
         url: '/',
         success: () => {
+            console.log("dummy request successful");
             //reconnect the socket AFTER we got jsessionid set
             socket.connect();
             clearInterval(intervalVar);
