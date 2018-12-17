@@ -353,20 +353,21 @@ function loadLoginConfiguration(data) {
  */
 function loadReconnectConfiguration(data, callback) {
     $("#loggedInUserName").html(data.loggedInAsString);
-    if (!rooms) {
-        rooms = [];
-        rooms.push(data.room);
+    if (!this.rooms) {
+        this.rooms = [];
+        this.rooms.push(data.room);
     }
-    if (!activeroom) {
-        activeroom = new Room();
-        activeroom.roomname = "AllChat";
-        activeroom.recipientname = "AllChat";
-        activeroom.sendername = "AllChat";
-        activeroom = rooms.find(room => room.roomname === data.room.roomname);
+    if (!this.activeroom) {
+        this.activeroom = new Room();
+        this.activeroom.roomname = "AllChat";
+        this.activeroom.recipientname = "AllChat";
+        this.activeroom.sendername = "AllChat";
+        this.activeroom = rooms.find(room => room.roomname === data.room.roomname);
+        console.log(this.activeroom);
     }
-    if (!chatWindowDiv) {
-        chatWindowDiv = $("#chatWindowDiv");
-        chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
+    if (!this.chatWindowDiv) {
+        this.chatWindowDiv = $("#chatWindowDiv");
+        this.chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
     }
     buildChatItem(data);
     loginDiv.hide();
