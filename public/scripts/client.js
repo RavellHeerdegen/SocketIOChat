@@ -351,6 +351,8 @@ function loadReconnectConfiguration(data, callback) {
         chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
         console.log("chatWIndowDiv war undefined");
         console.log(chatWindowDiv.html());
+    } else {
+        chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
     }
     console.log(data.room);
     username = data.sendername;
