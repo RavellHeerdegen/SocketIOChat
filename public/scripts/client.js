@@ -346,17 +346,11 @@ function loadLoginConfiguration(data) {
  * @param {LoginMessage} data the message sent if a user reconnected
  */
 function loadReconnectConfiguration(data, callback) {
-    if (chatWindowDiv === undefined) {
-        chatWindowDiv = $("#chatWindowDiv");
-        chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
-        console.log("chatWIndowDiv war undefined");
-        console.log(chatWindowDiv.html());
-    } else {
-        chatwindow = $("#chatWindow");
-        if (chatwindow === undefined || chatwindow === null) {
-            chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
-        }
-    }
+    chatWindowDiv.html("");
+    chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
+
+    console.log(chatWindowDiv.html());
+
     console.log(data.room);
     username = data.sendername;
     if (rooms !== undefined) {
@@ -365,7 +359,7 @@ function loadReconnectConfiguration(data, callback) {
 
         } else {
             rooms.push(activeroom);
-        } 
+        }
     } else {
         rooms = [];
         activeroom = data.room;
