@@ -224,10 +224,6 @@ socket.on("login_successful", (data, callback) => {
 
 socket.on("reconnect_successful", (data, callback) => {
     $("#usersonlinelist").html(data.message.usersOnlineListDOM);
-    if (chatWindowDiv === undefined) {
-        chatWindowDiv = $("#chatWindowDiv");
-        chatWindowDiv.html(chatWindowDiv.html() + data.message.chatDOM);
-    }
     callback = loadReconnectConfiguration;
     callback(data.message);
 
@@ -350,6 +346,12 @@ function loadLoginConfiguration(data) {
  * @param {LoginMessage} data the message sent if a user reconnected
  */
 function loadReconnectConfiguration(data, callback) {
+    if (chatWindowDiv === undefined) {
+        chatWindowDiv = $("#chatWindowDiv");
+        chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
+        console.log("chatWIndowDiv war undefined");
+        console.log(chatWindowDiv.html());
+    }
     console.log(data.room);
     username = data.sendername;
     if (rooms !== undefined) {
@@ -409,6 +411,8 @@ function buildChatItem(data) {
         console.log("In buildChatItem activeroom");
         console.log(activeroom);
         activeroom.chatContent.forEach(message => {
+            console.log("In der foreach");
+            console.log(message);
             $("#chatWindow").html($("#chatWindow").html() + message);
         });
     }
