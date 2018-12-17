@@ -352,7 +352,7 @@ function loadReconnectConfiguration(data, callback) {
         console.log("chatWIndowDiv war undefined");
         console.log(chatWindowDiv.html());
     } else {
-        if (!chatWindowDiv.html().contains(data.chatDom)) {
+        if (!$("#chatWindowDiv:contains('<ul>')")) {
             chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
         }
     }
