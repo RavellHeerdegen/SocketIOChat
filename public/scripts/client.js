@@ -344,14 +344,18 @@ function loadLoginConfiguration(data) {
  * Loads up the reconnect configuration of the DOM-Elements
  * @param {LoginMessage} data the message sent if a user reconnected
  */
-function loadReconnectConfiguration(data) {
+function loadReconnectConfiguration(data, callback) {
     $("#loggedInUserName").html(data.loggedInAsString);
-    if (!this.rooms) {
-        this.rooms = [];
-        this.rooms.push(data.room);
+    if (!rooms) {
+        rooms = [];
+        rooms.push(data.room);
     }
-    if (!this.activeroom) {
-        this.activeroom = this.rooms.find(room => room.roomname === data.room.roomname);
+    if (!activeroom) {
+        activeroom = new Room();
+        activeroom.roomname = "AllChat";
+        activeroom.recipientname = "AllChat";
+        activeroom.sendername = "AllChat";
+        activeroom = rooms.find(room => room.roomname === data.room.roomname);
     }
     if (!chatWindowDiv) {
         chatWindowDiv = $("#chatWindowDiv");
@@ -360,11 +364,15 @@ function loadReconnectConfiguration(data) {
     buildChatItem(data);
     loginDiv.hide();
     chatDiv.show();
-    socket.emit("update_chattabs", {
-        username: username,
-        rooms: rooms
-    });
+
     $("#message").focus();
+    callback = (
+        socket.emit("update_chattabs", {
+            username: username,
+            rooms: rooms
+        }
+    ));
+    callback();
 }
 
 /**
@@ -397,12 +405,12 @@ function buildChatItem(data) {
         room.chatContent.push(listItemDiv);
     }
     $("#chatWindow").empty();
-    if(activeroom){
+    if (activeroom) {
         activeroom.chatContent.forEach(message => {
             $("#chatWindow").html($("#chatWindow").html() + message);
         });
     }
-   
+
 
     $("#chatWindowDiv").stop().animate({ scrollTop: $("#chatWindowDiv")[0].scrollHeight }, 1000);
 }
