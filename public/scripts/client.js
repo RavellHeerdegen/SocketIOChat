@@ -354,11 +354,12 @@ function loadReconnectConfiguration(data, callback) {
     console.log(data.room);
     username = data.sendername;
     if (rooms !== undefined && rooms !== null) {
-        activeroom = data.room;
-        if (rooms.find(room => room.roomname === activeroom.roomname)) {
+        
+        if (rooms.find(room => room.roomname === data.room.roomname)) {
             console.log("Found AllChat");
         } else {
             console.log("Found no AllChat");
+            activeroom = data.room;
             rooms.push(activeroom);
         }
     } else {
