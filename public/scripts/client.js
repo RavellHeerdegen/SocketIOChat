@@ -223,7 +223,7 @@ socket.on("login_successful", (data, callback) => {
 });
 
 socket.on("reconnect_successful", (data, callback) => {
-
+    $("#usersonlinelist").html(data.message.usersOnlineListDOM);
     if (chatWindowDiv === undefined) {
         chatWindowDiv = $("#chatWindowDiv");
         chatWindowDiv.html(chatWindowDiv.html() + data.message.chatDOM);
