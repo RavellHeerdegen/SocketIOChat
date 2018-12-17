@@ -352,13 +352,19 @@ function loadReconnectConfiguration(data, callback) {
         console.log("chatWIndowDiv war undefined");
         console.log(chatWindowDiv.html());
     } else {
-        chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
+        if (!chatWindowDiv.html().contains(data.chatDom)) {
+            chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
+        }
     }
     console.log(data.room);
     username = data.sendername;
     if (rooms !== undefined) {
         activeroom = data.room;
-        rooms.push(activeroom);
+        if (rooms.find(room => room.roomname === activeroom.roomname)) {
+
+        } else {
+            rooms.push(activeroom);
+        } 
     } else {
         rooms = [];
         activeroom = data.room;
