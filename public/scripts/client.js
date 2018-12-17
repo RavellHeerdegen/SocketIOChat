@@ -224,6 +224,17 @@ socket.on("login_successful", (data, callback) => {
 
 socket.on("reconnect_successful", (data, callback) => {
     $("#usersonlinelist").html(data.message.usersOnlineListDOM);
+    $("#loggedInUserName").html(data.message.loggedInAsString);
+    if (rooms === undefined) {
+        rooms = [];
+        activeroom = data.message.room;
+        rooms.push(activeroom);
+    }
+    console.log(activeroom);
+    if (!chatWindowDiv) {
+        chatWindowDiv = $("#chatWindowDiv");
+        chatWindowDiv.html(chatWindowDiv.html() + data.message.chatDOM);
+    }
     callback = loadReconnectConfiguration;
     callback(data.message, updateChatTabs);
 });
@@ -352,24 +363,6 @@ function loadLoginConfiguration(data) {
  * @param {LoginMessage} data the message sent if a user reconnected
  */
 function loadReconnectConfiguration(data, callback) {
-    $("#loggedInUserName").html(data.loggedInAsString);
-    if (!this.rooms) {
-        this.rooms = [];
-        this.rooms.push(data.room);
-    }
-    if (!this.activeroom) {
-        this.activeroom = new Room();
-        this.activeroom.roomname = "AllChat";
-        this.activeroom.recipientname = "AllChat";
-        this.activeroom.sendername = "AllChat";
-        this.activeroom.chatContent = [];
-        this.activeroom = rooms.find(room => room.roomname === data.room.roomname);
-        console.log(this.activeroom);
-    }
-    if (!this.chatWindowDiv) {
-        this.chatWindowDiv = $("#chatWindowDiv");
-        this.chatWindowDiv.html(chatWindowDiv.html() + data.chatDOM);
-    }
     buildChatItem(data);
     loginDiv.hide();
     chatDiv.show();
