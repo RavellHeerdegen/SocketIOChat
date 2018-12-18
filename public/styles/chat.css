@@ -175,6 +175,10 @@ body, html {
     font-size: 36px;
 }
 
+#file_input {
+    display: none;
+}
+
 .fileIncomeIcon {
     font-size: 36px;
 }
@@ -264,7 +268,27 @@ body, html {
     justify-content: center;
 }
 
+#progressbarDiv {
+    height: 8px; margin-bottom: 6px;
+}
+
 /* LOGIN */
+
+#modalCloseButton {
+    color:white;
+}
+
+#uploadDiv {
+    margin-top: 12px;
+}
+
+#loginButtonDiv {
+    display: flex; justify-content: flex-start; align-items: center; padding-left: 0;
+}
+
+#registerButtonDiv {
+    display: flex; justify-content: flex-end; align-items: center; padding-right: 0;
+}
 
 .loader {
     border-radius: 50%;

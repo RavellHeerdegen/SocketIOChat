@@ -14,7 +14,7 @@
 
 <body id="body">
 
-    <div class="container" id="loginDiv" style="display: none">
+    <div class="container" id="loginDiv">
         <div class="col-sm-12" id="logoDiv">
             <img src="../assets/scbw.png">
         </div>
@@ -26,7 +26,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">Registration</h5>
-                        <button type="button" class="close" data-dismiss="modal" style="color:white" aria-label="Close">
+                        <button type="button" class="close" data-dismiss="modal" id="modalCloseButton" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
@@ -36,7 +36,7 @@
                             <input type="text" placeholder="Username" class="form-control" id="usernameInputDialog" autofocus class="formField">
                             <span>Password (8 to 24 characters must contain uppercase letter, lowcase letter and number 0 to 9)</span>
                             <input type="password" placeholder="Password" class="form-control" id="passwordInputDialog" class="formField" autocomplete="off">
-                            <div style="margin-top: 12px">
+                            <div id="uploadDiv">
                                 <div>
                                     <span>Upload your profile picture (optional)</span>
                                 </div>
@@ -76,10 +76,10 @@
                     </div>
                 </div>
                 <div id="actionButtonsDiv">
-                    <div class="col-sm-6" style="display: flex; justify-content: flex-start; align-items: center; padding-left: 0">
+                    <div class="col-sm-6" id="loginButtonDiv">
                         <button class="btn btn-primary" type="button" id="loginButton">Login</button>
                     </div>
-                    <div class="col-sm-6" style="display: flex; justify-content: flex-end; align-items: center; padding-right: 0">
+                    <div class="col-sm-6" id="registerButtonDiv">
                         <button class="btn btn-warning" type="button" id="registerButton" data-toggle="modal" data-target="#registerDialogDiv">Register</button>
                     </div>
                 </div>
@@ -87,7 +87,7 @@
         </div>
     </div>
 
-    <div class="container" id="chatDiv" style="display: none;">
+    <div class="container" id="chatDiv">
 
         <div id="headerInfo">
             <div class="col-sm-11" id="headerLoggedInAsDiv">
@@ -124,7 +124,7 @@
 
                     </div>
 
-                    <div class="row progress" style="height: 8px; margin-bottom: 6px;" id="progressbarDiv">
+                    <div class="row progress" id="progressbarDiv">
                         <div class="progress-bar progress-bar-striped bg-success progress-bar-animated" id="progressbar"></div>
                     </div>
 
@@ -148,7 +148,7 @@
                             <div class="col-sm-3" id="fileSendButtonDiv">
                                 <label class="btn btn-primary" id="fileSendButton">
                                     <i class="material-icons">attach_file</i>
-                                    <input type="file" id="file_input" style="display: none;">
+                                    <input type="file" id="file_input">
                                 </label>
                             </div>
 

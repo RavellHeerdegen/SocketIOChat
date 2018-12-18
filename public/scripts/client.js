@@ -7,7 +7,7 @@ const socket = io('/', {
 
 // DIVs START
 var loginDiv = $("#loginDiv").show();
-var chatDiv = $("#chatDiv");
+var chatDiv = $("#chatDiv").hide();
 var chatWindowDiv = $("#chatWindowDiv");
 // DIVs END
 
@@ -216,6 +216,8 @@ socket.on('disconnect', function () {
  * Handles the login_successful socket-event of the server depending who the user is
  */
 socket.on("login_successful", (data, callback) => {
+    loginDiv.hide();
+    chatDiv.show();
     $("#usersonlinelist").html(data.message.usersOnlineListDOM);
     if (data.message.sendername === username) { // we are the logging in user
         console.log("Logged into chat. Nice!");
@@ -227,6 +229,8 @@ socket.on("login_successful", (data, callback) => {
 });
 
 socket.on("reconnect_successful", (data, callback) => {
+    loginDiv.hide();
+    chatDiv.show();
     $("#usersonlinelist").html(data.message.usersOnlineListDOM);
     callback = loadReconnectConfiguration;
     callback(data.message);
