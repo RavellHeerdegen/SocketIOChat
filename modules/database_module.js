@@ -16,21 +16,21 @@ let connection = mysql.createConnection('mysql://admin:EKAVNZNWEVTYOGSX@sl-eu-fr
 let deleteallloggedinusers = "delete from loggedinusers;";
 // let getallloggedinusers = "select * from loggedinusers;";
 // let addcolumnquery = "alter table users ADD profilepictureID VARCHAR(100);";
-return new Promise((resolve, reject) => {
-    connection.query(deleteallloggedinusers, (err, rows) => {
-        if (err || !rows[0]) {
-            console.log(err);
-            console.log("NIX DRIN");
-            resolve(false);
-        } else {
-            if (rows[0]) {
-                console.log(rows);
-                console.log("PAINIS");
-                resolve(true);
-            }
-        }
-    });
-});
+// return new Promise((resolve, reject) => {
+//     connection.query(deleteallloggedinusers, (err, rows) => {
+//         if (err || !rows[0]) {
+//             console.log(err);
+//             console.log("NIX DRIN");
+//             resolve(false);
+//         } else {
+//             if (rows[0]) {
+//                 console.log(rows);
+//                 console.log("PAINIS");
+//                 resolve(true);
+//             }
+//         }
+//     });
+// });
 
 // QUERIES END
 
