@@ -22,7 +22,6 @@ const visualrecognition = require("./modules/visualrecognition_module");
 var express_enforces_ssl = require('express-enforces-ssl');
 const logger = require("./modules/logger");
 const fs = require("fs");
-const csp = require('content-security-policy');
 const helmet = require('helmet');
 var bcrypt = require('bcryptjs');
 var salt = bcrypt.genSaltSync(10);
@@ -34,23 +33,7 @@ app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css'));
 app.use('/css', express.static(__dirname + '/node_modules/@mdi/font/css')); // redirect CSS MaterialDesignIcons
 app.use('/js', express.static(__dirname + '/node_modules/socket.io-stream')); // redirect JS Socket-io-Stream
 app.use(helmet());
-// app.use(express_enforces_ssl());
-
-// Content Security Policy Options START
-const cspPolicy = {
-    'report-uri': '/reporting',
-    'default-src': csp.SRC_NONE,
-    'script-src': [ csp.SRC_SELF, csp.SRC_DATA, csp.SRC_HTTPS ]
-};
-
-const globalCSP = csp.getCSP(csp.STARTER_OPTIONS);
-app.use(globalCSP);
-const localCSP = csp.getCSP(cspPolicy);
-app.get('/local', localCSP, (req, res) => {
-});
-app.use(helmet.xssFilter());
-
-// Content Security Policy Options END
+app.use(express_enforces_ssl());
 
 // Server variables START
 var users = []; // Sockets
@@ -100,16 +83,16 @@ const io = require("socket.io")(server); // Socket is attached to server
 io.use(expresssocketiosession(session)); // remember the client session
 
 // Set up Content Security Policy
-// app.use(helmet.contentSecurityPolicy({
-    // directives: {
-    //     defaultSrc: ["'self'"],
-    //     styleSrc: ["'self'", 'maxcdn.bootstrapcdn.com', "'unsafe-inline'", "fonts.googleapis.com", "fonts.gstatic.com"],
-    //     imgSrc: ["'self'", "self data: blob:;"],
-    //     fontSrc: ["fonts.googleapis.com", "fonts.gstatic.com", "'self'"],
-    //     connectSrc: ["'self'", "wss://*.mybluemix.net", "socket.io"],
-    //     scriptSrc: ["'self'", "'unsafe-inline'"]
-//     }
-// }));
+app.use(helmet.contentSecurityPolicy({
+    directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", 'maxcdn.bootstrapcdn.com', "'unsafe-inline'", "fonts.googleapis.com", "fonts.gstatic.com"],
+        imgSrc: ["'self'", "self data: blob:;"],
+        fontSrc: ["fonts.googleapis.com", "fonts.gstatic.com", "'self'"],
+        connectSrc: ["'self'", "wss://*.mybluemix.net", "socket.io"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "*"]
+    }
+}));
 
 /* Routes START */
 
