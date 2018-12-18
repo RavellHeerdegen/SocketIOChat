@@ -101,13 +101,13 @@ io.use(expresssocketiosession(session)); // remember the client session
 
 // Set up Content Security Policy
 // app.use(helmet.contentSecurityPolicy({
-//     directives: {
-//         defaultSrc: ["'self'"],
-//         styleSrc: ["'self'", 'maxcdn.bootstrapcdn.com', "'unsafe-inline'", "fonts.googleapis.com", "fonts.gstatic.com"],
-//         imgSrc: ["'self'", "self data: blob:;"],
-//         fontSrc: ["fonts.googleapis.com", "fonts.gstatic.com", "'self'"],
-//         connectSrc: ["'self'", "wss://*.mybluemix.net", "socket.io"],
-//         scriptSrc: ["'self'", "'unsafe-inline'"]
+    // directives: {
+    //     defaultSrc: ["'self'"],
+    //     styleSrc: ["'self'", 'maxcdn.bootstrapcdn.com', "'unsafe-inline'", "fonts.googleapis.com", "fonts.gstatic.com"],
+    //     imgSrc: ["'self'", "self data: blob:;"],
+    //     fontSrc: ["fonts.googleapis.com", "fonts.gstatic.com", "'self'"],
+    //     connectSrc: ["'self'", "wss://*.mybluemix.net", "socket.io"],
+    //     scriptSrc: ["'self'", "'unsafe-inline'"]
 //     }
 // }));
 

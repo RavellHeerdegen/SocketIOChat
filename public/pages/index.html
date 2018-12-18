@@ -10,6 +10,12 @@
     <script src="/js/bootstrap.min.js"></script>
     <script src="socket.io-stream.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    connect-src 'self' wss://*.mybluemix.net socket.io;
+    object-src 'self'; img-src 'self' data: https: blob:;
+    style-src 'unsafe-inline' *;
+    font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com;">
 </head>
 
 <body id="body">
